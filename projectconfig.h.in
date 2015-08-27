@@ -1,0 +1,7 @@
+#ifndef PROJECTCONFIG_H_
+#define PROJECTCONFIG_H_
+
+#cmakedefine OPENMP_FOUND
+
+
+#endif
