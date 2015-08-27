@@ -414,46 +414,11 @@ size_t intersect_vector_avx(uint32_t *list1, size_t size1, uint32_t *list2, size
 		int32_t b_max = list2[i_b+7];
 		i_a += (a_max <= b_max) * 8;
 		i_b += (a_max >= b_max) * 8;
-// 		asm(".intel_syntax noprefix;"
-// 
-// 			"xor rax, rax;"
-// 			"xor rbx, rbx;"
-// 			"cmp %4, %5;"
-// 			"setle al;"
-// 			"setge bl;"
-// 			"lea %q0, [%q0 + rax*8];"
-// 			"lea %q1, [%q1 + rbx*8];"
-// 
-// 			".att_syntax"
-// 			: "=r"(i_a), "=r"(i_b)
-// 			: "0"(i_a), "1"(i_b), "r"(a_max), "r"(b_max)
-// 			: "%eax", "%ebx", "cc"
-// 		);
 
 		// AVX is missing many integer operations, AVX2 has them
 		__m256 vfa = _mm256_cvtepi32_ps(v_a);
 		__m256 vfb = _mm256_cvtepi32_ps(v_b);
 
-// 		constexpr int32_t cyclic_shift = _MM_SHUFFLE(0,3,2,1);
-// // 		constexpr int32_t cyclic_shift2= _MM_SHUFFLE(2,1,0,3);
-// 		// AVX2: _mm256_cmpeq_epi32
-// 		__m256 cmp_mask1 = _mm256_cmp_ps(vfa, vfb, _CMP_EQ_OQ);
-// 		vfb = _mm256_permute_ps(vfb, cyclic_shift);
-// 		__m256 cmp_mask2 = _mm256_cmp_ps(vfa, vfb, _CMP_EQ_OQ);
-// 		vfb = _mm256_permute_ps(vfb, cyclic_shift);
-// 		__m256 cmp_mask3 = _mm256_cmp_ps(vfa, vfb, _CMP_EQ_OQ);
-// 		vfb = _mm256_permute_ps(vfb, cyclic_shift);
-// 		__m256 cmp_mask4 = _mm256_cmp_ps(vfa, vfb, _CMP_EQ_OQ);
-// 
-// 		vfb = _mm256_permute2f128_ps(vfb, vfb, 1);
-// 
-// 		__m256 cmp_mask5 = _mm256_cmp_ps(vfa, vfb, _CMP_EQ_OQ);
-// 		vfb = _mm256_permute_ps(vfb, cyclic_shift);
-// 		__m256 cmp_mask6 = _mm256_cmp_ps(vfa, vfb, _CMP_EQ_OQ);
-// 		vfb = _mm256_permute_ps(vfb, cyclic_shift);
-// 		__m256 cmp_mask7 = _mm256_cmp_ps(vfa, vfb, _CMP_EQ_OQ);
-// 		vfb = _mm256_permute_ps(vfb, cyclic_shift);
-// 		__m256 cmp_mask8 = _mm256_cmp_ps(vfa, vfb, _CMP_EQ_OQ);
 		constexpr int32_t cyclic_shift = _MM_SHUFFLE(0,3,2,1); //rotating right
 		constexpr int32_t cyclic_shift2= _MM_SHUFFLE(2,1,0,3); //rotating left
 		constexpr int32_t cyclic_shift3= _MM_SHUFFLE(1,0,3,2); //between
@@ -498,14 +463,6 @@ size_t intersect_vector_avx(uint32_t *list1, size_t size1, uint32_t *list2, size
 		_mm256_storeu_si256((__m256i*)&result[count], p);
 
 		count += _mm_popcnt_u32(mask);
-// 		asm(".intel_syntax noprefix;"
-// 			"popcnt %1, %1;"
-// 			"add %q0, %q1;"
-// 			".att_syntax;"
-// 			: "=r"(count), "=r"(mask)
-// 			: "0"(count), "1"(mask)
-// 			: "cc"
-// 		);
 	}
 	// intersect the tail using scalar intersection
 	count += intersect_scalar(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
@@ -528,21 +485,6 @@ size_t intersect_vector_avx_count(uint32_t *list1, size_t size1, uint32_t *list2
 		uint32_t b_max = list2[i_b+7];
 		i_a += (a_max <= b_max) * 8;
 		i_b += (a_max >= b_max) * 8;
-// 		asm(".intel_syntax noprefix;"
-// 
-// 			"xor rax, rax;"
-// 			"xor rbx, rbx;"
-// 			"cmp %4, %5;"
-// 			"setle al;"
-// 			"setge bl;"
-// 			"lea %q0, [%q0 + rax*8];"
-// 			"lea %q1, [%q1 + rbx*8];"
-// 
-// 			".att_syntax"
-// 			: "=r"(i_a), "=r"(i_b)
-// 			: "0"(i_a), "1"(i_b), "r"(a_max), "r"(b_max)
-// 			: "%eax", "%ebx", "cc"
-// 		);
 
 		// AVX is missing many integer operations, AVX2 has them
 		__m256 vfa = _mm256_cvtepi32_ps(v_a);
