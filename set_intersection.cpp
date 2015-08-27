@@ -12,13 +12,6 @@
 
 #include "projectconfig.h"
 
-// disable OpenMP for now, intersect_scalar_stl_parallel will still use it
-#undef OPENMP_FOUND
-
-#ifdef OPENMP_FOUND
-#include <omp.h>
-#endif
-
 #include "constants.h"
 
 
@@ -990,65 +983,49 @@ void run(uint32_t **lists,
 	size_t (*func_count)(uint32_t*,size_t,uint32_t*,size_t)=nullptr
 ){
 #if 1
-	size_t threads=0;
-#ifdef OPENMP_FOUND
-	for(threads=1; threads<=threadCount; ++threads){
-#endif
-		if(func){
-			auto t_start = std::chrono::high_resolution_clock::now();
-			size_t intersected=0;
-			for(size_t repeat=0; repeat<repeatCount; ++repeat){
-				size_t i;
-#ifdef OPENMP_FOUND
-				omp_set_num_threads(threads);
-				#pragma omp parallel for \
-					shared(lists) \
-					private(i) \
-					reduction(+:intersected) \
-					schedule(dynamic)
-#endif
-				for(/*size_t */i=0; i<listCount; ++i){
-					uint32_t *intersected_list = new uint32_t[arraySize];
-					for(size_t j=i+1; j<listCount; ++j){
-						intersected += func(
-							lists[i], arraySize,
-							lists[j], arraySize,
-							intersected_list
-						);
-					}
-					delete[] intersected_list;
+	if(func){
+		auto t_start = std::chrono::high_resolution_clock::now();
+		size_t intersected=0;
+		for(size_t repeat=0; repeat<repeatCount; ++repeat){
+			size_t i;
+			for(/*size_t */i=0; i<listCount; ++i){
+				uint32_t *intersected_list = new uint32_t[arraySize];
+				for(size_t j=i+1; j<listCount; ++j){
+					intersected += func(
+						lists[i], arraySize,
+						lists[j], arraySize,
+						intersected_list
+					);
 				}
+				delete[] intersected_list;
 			}
-			auto t_end = std::chrono::high_resolution_clock::now();
-			printf("Wall clock time passed: %10.2f ms - %lu - %2lu threads\n",
-				std::chrono::duration<double, std::milli>(t_end-t_start).count(),
-				intersected, threads
-			);
 		}
-
-		if(func_count){
-			auto t_start = std::chrono::high_resolution_clock::now();
-			size_t intersected=0;
-			for(size_t repeat=0; repeat<repeatCount; ++repeat){
-				for(size_t i=0; i<listCount; ++i){
-					for(size_t j=i+1; j<listCount; ++j){
-						intersected += func_count(
-							lists[i], arraySize,
-							lists[j], arraySize
-						);
-					}
-				}
-			}
-			auto t_end = std::chrono::high_resolution_clock::now();
-			printf("Wall clock time passed: %10.2f ms - %lu - just counting\n",
-				std::chrono::duration<double, std::milli>(t_end-t_start).count(),
-				intersected
-			);
-		}
-#ifdef OPENMP_FOUND
+		auto t_end = std::chrono::high_resolution_clock::now();
+		printf("Wall clock time passed: %10.2f ms - %lu\n",
+			std::chrono::duration<double, std::milli>(t_end-t_start).count(),
+			intersected
+		);
 	}
-#endif
 
+	if(func_count){
+		auto t_start = std::chrono::high_resolution_clock::now();
+		size_t intersected=0;
+		for(size_t repeat=0; repeat<repeatCount; ++repeat){
+			for(size_t i=0; i<listCount; ++i){
+				for(size_t j=i+1; j<listCount; ++j){
+					intersected += func_count(
+						lists[i], arraySize,
+						lists[j], arraySize
+					);
+				}
+			}
+		}
+		auto t_end = std::chrono::high_resolution_clock::now();
+		printf("Wall clock time passed: %10.2f ms - %lu - just counting\n",
+			std::chrono::duration<double, std::milli>(t_end-t_start).count(),
+			intersected
+		);
+	}
 #else
 	constexpr size_t size = 20;
 	for(size_t i=0; i<size; ++i){
