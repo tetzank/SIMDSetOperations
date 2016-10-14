@@ -93,29 +93,30 @@ size_t intersect_scalar_branchless(uint32_t *list1, size_t size1, uint32_t *list
 		"xor rbx, rbx;"
 		"xor rcx, rcx;"
 	"1: "
-		"cmp %1, %4;"  // list1 != end1
+		"cmp %[list1], %[end1];"  // list1 != end1
 		"je 2f;"
-		"cmp %2, %5;"  // list2 != end2
+		"cmp %[list2], %[end2];"  // list2 != end2
 		"je 2f;"
 
-		"mov r10d, [%q2];"  // saved in r10d as value is only 4 byte wide
-		"cmp [%q1], r10d;"  // compare *list1 and *list2
-		"setle al;"         // set al=1 if lower or equal
-		"setge bl;"         // set bl=1 if greater or equal
-		"sete  cl;"         // set cl=1 if equal, a bit quicker than: and rax, rbx;
+		"mov r10d, [%q[list2]];"  // saved in r10d as value is only 4 byte wide
+		"cmp [%q[list1]], r10d;"  // compare *list1 and *list2
+		"setle al;"               // set al=1 if lower or equal
+		"setge bl;"               // set bl=1 if greater or equal
+		"sete  cl;"               // set cl=1 if equal, a bit quicker than: and rax, rbx;
 
-		"mov [%q0], r10d;"  // always save, is overwritten when not equal
+		"mov [%q[endresult]], r10d;"  // always save, is overwritten when not equal
 
-		"lea %q1, [%q1 + rax*4];" // list1++, if lower or equal
-		"lea %q2, [%q2 + rbx*4];" // list2++, if greater or equal
-		"lea %q0, [%q0 + rcx*4];" // result++, if equal
+		"lea %q[list1], [%q[list1] + rax*4];"         // list1++, if lower or equal
+		"lea %q[list2], [%q[list2] + rbx*4];"         // list2++, if greater or equal
+		"lea %q[endresult], [%q[endresult] + rcx*4];" // result++, if equal
 
 		"jmp 1b;"       // to loop head
 	"2: "
 		".att_syntax;"
 
-		: "=r"(endresult)
-		: "r"(list1), "r"(list2), "0"(result), "r"(end1), "r"(end2)
+		: [endresult]"=r"(endresult)
+		: [list1]"r"(list1), [list2]"r"(list2), [end1]"r"(end1), [end2]"r"(end2),
+			"0"(result)
 		: "%rax","%rbx","%rcx", "%r10", "memory", "cc"
 	);
 	return endresult-result;
@@ -128,27 +129,28 @@ size_t intersect_scalar_branchless_count(uint32_t *list1, size_t size1, uint32_t
 		"xor rbx, rbx;"
 		"xor rcx, rcx;"
 	"1: "
-		"cmp %1, %4;"  // list1 != end1
+		"cmp %[list1], %[end1];"  // list1 != end1
 		"je 2f;"
-		"cmp %2, %5;"  // list2 != end2
+		"cmp %[list2], %[end2];"  // list2 != end2
 		"je 2f;"
 
-		"mov r10d, [%q2];"  // saved in r10d as value is only 4 byte wide
-		"cmp [%q1], r10d;"  // compare *list1 and *list2
-		"setle al;"         // set al=1 if lower or equal
-		"setge bl;"         // set bl=1 if greater or equal
-		"sete  cl;"         // set cl=1 if equal, a bit quicker than: and rax, rbx;
+		"mov r10d, [%q[list2]];"  // saved in r10d as value is only 4 byte wide
+		"cmp [%q[list1]], r10d;"  // compare *list1 and *list2
+		"setle al;"               // set al=1 if lower or equal
+		"setge bl;"               // set bl=1 if greater or equal
+		"sete  cl;"               // set cl=1 if equal, a bit quicker than: and rax, rbx;
 
-		"lea %q1, [%q1 + rax*4];" // list1++, if lower or equal
-		"lea %q2, [%q2 + rbx*4];" // list2++, if greater or equal
-		"lea %q0, [%q0 + rcx];"   // count++, if equal
+		"lea %q[list1], [%q[list1] + rax*4];" // list1++, if lower or equal
+		"lea %q[list2], [%q[list2] + rbx*4];" // list2++, if greater or equal
+		"lea %q[count], [%q[count] + rcx];"   // count++, if equal
 
 		"jmp 1b;"       // to loop head
 	"2: "
 		".att_syntax;"
 
-		: "=r"(count)
-		: "r"(list1), "r"(list2), "0"(count), "r"(end1), "r"(end2)
+		: [count]"=r"(count)
+		: [list1]"r"(list1), [list2]"r"(list2), [end1]"r"(end1), [end2]"r"(end2),
+			"0"(count)
 		: "%rax","%rbx","%rcx", "%r10"/*, "memory", "cc"*/
 	);
 	return count;
@@ -291,11 +293,11 @@ size_t intersect_vector_SSE_asm(uint32_t *list1, size_t size1, uint32_t *list2, 
 	while(i_a < st_a && i_b < st_b) {
 		asm(".intel_syntax noprefix;"
 
-			"vmovdqa xmm0, [%q3 + %q0*4];" //__m128i v_a = _mm_load_si128((__m128i*)&list1[i_a]);
-			"vmovdqa xmm1, [%q4 + %q1*4];" //__m128i v_b = _mm_load_si128((__m128i*)&list2[i_b]);
+			"vmovdqa xmm0, [%q3 + %q[i_a]*4];" //__m128i v_a = _mm_load_si128((__m128i*)&list1[i_a]);
+			"vmovdqa xmm1, [%q4 + %q[i_b]*4];" //__m128i v_b = _mm_load_si128((__m128i*)&list2[i_b]);
 
-			"mov r8d, [%q3 + %q0*4 + 12];" //int32_t a_max = list1[i_a+3];
-			"mov r9d, [%q4 + %q1*4 + 12];" //int32_t b_max = list2[i_b+3];
+			"mov r8d, [%q[list1] + %q[i_a]*4 + 12];" //int32_t a_max = list1[i_a+3];
+			"mov r9d, [%q[list2] + %q[i_b]*4 + 12];" //int32_t b_max = list2[i_b+3];
 			//i_a += (a_max <= b_max) * 4;
 			//i_b += (a_max >= b_max) * 4;
 			"xor rax, rax;"
@@ -303,8 +305,8 @@ size_t intersect_vector_SSE_asm(uint32_t *list1, size_t size1, uint32_t *list2, 
 			"cmp r8d, r9d;"
 			"setle al;"
 			"setge bl;"
-			"lea %q0, [%q0 + rax*4];"
-			"lea %q1, [%q1 + rbx*4];"
+			"lea %q[i_a], [%q[i_a] + rax*4];"
+			"lea %q[i_b], [%q[i_b] + rbx*4];"
 
 // 			"vpcmpeqd xmm2, xmm0, xmm1;"
 // 			"vpshufd xmm1, xmm1, 0x39;"
@@ -331,16 +333,16 @@ size_t intersect_vector_SSE_asm(uint32_t *list1, size_t size1, uint32_t *list2, 
 			// -> do it outside
 			"movslq r9, r8d;"
 			"shl r9, 4;"
-			"vpshufb xmm0, xmm0, [%q6 + r9];"
-			"vmovups [%q5 + %q2*4], xmm0;"
+			"vpshufb xmm0, xmm0, [%q[shuffle_mask] + r9];"
+			"vmovups [%q[result] + %q[count]*4], xmm0;"
 
 			"popcnt r8d, r8d;"
 // 			"movl r8, r8d;" // zero extend
-			"add %q2, r8;"
+			"add %q[count], r8;"
 
 			".att_syntax;"
-			: "=r"(i_a), "=r"(i_b), "=r"(count)
-			: "r"(list1), "r"(list2), "r"(result), "r"(shuffle_mask),
+			: [i_a]"=r"(i_a), [i_b]"=r"(i_b), [count]"=r"(count)
+			: [list1]"r"(list1), [list2]"r"(list2), [result]"r"(result), [shuffle_mask]"r"(shuffle_mask),
 				"0"(i_a), "1"(i_b), "2"(count)
 			: "%rax", "%rbx", "%r8", "%r9",
 				"%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5",
@@ -546,28 +548,28 @@ size_t intersect_vector_avx_asm(uint32_t *list1, size_t size1, uint32_t *list2, 
 		"xor rax, rax;"
 		"xor rbx, rbx;"
 		"xor r9, r9;"
-		"vmovdqa xmm15, [%q10];"
+		"vmovdqa xmm15, [%q[xorconst]];"
 	"1: "
-		"cmp %1, %4;"
+		"cmp %[i_a], %[st_a];"
 		"je 2f;"
-		"cmp %2, %5;"
+		"cmp %[i_b], %[st_b];"
 		"je 2f;"
 
-		"vmovdqa ymm0, [%q6 + %q1*4];" // elements are 4 byte
+		"vmovdqa ymm0, [%q[list1] + %q[i_a]*4];" // elements are 4 byte
 		"vcvtdq2ps ymm1, ymm0;"
-		"vcvtdq2ps ymm2, [%q7 + %q2*4];"
+		"vcvtdq2ps ymm2, [%q[list2] + %q[i_b]*4];"
 
-		"mov r8d, [%q6 + %q1*4 + 28];" //int32_t a_max = list1[i_a+7];
-		"cmp r8d, [%q7 + %q2*4 + 28];"
+		"mov r8d, [%q[list1] + %q[i_a]*4 + 28];" //int32_t a_max = list1[i_a+7];
+		"cmp r8d, [%q[list2] + %q[i_b]*4 + 28];"
 		"setle al;"
 		"setge bl;"
-		"lea %q1, [%q1 + rax*8];"
-		"lea %q2, [%q2 + rbx*8];"
+		"lea %q[i_a], [%q[i_a] + rax*8];"
+		"lea %q[i_b], [%q[i_b] + rbx*8];"
 
 		"vcmpeqps ymm10, ymm1, ymm2;"
 		"vpermilps ymm3, ymm2, 0x39;"
 		"vcmpeqps ymm11, ymm1, ymm3;"
-		"vpermilps ymm4, ymm3, 0x39;"
+		"vpermilps ymm4, ymm3, 0x39;" //FIXME: why two cyclic shifts after eachother? break dependency
 		"vcmpeqps ymm4, ymm1, ymm4;"
 		"vpermilps ymm5, ymm2, 0x93;"
 		"vcmpeqps ymm5, ymm1, ymm5;"
@@ -577,7 +579,7 @@ size_t intersect_vector_avx_asm(uint32_t *list1, size_t size1, uint32_t *list2, 
 
 		"vpermilps ymm7, ymm6, 0x39;"
 		"vcmpeqps ymm13, ymm1, ymm7;"
-		"vpermilps ymm8, ymm7, 0x39;"
+		"vpermilps ymm8, ymm7, 0x39;" //FIXME
 		"vcmpeqps ymm8, ymm1, ymm8;"
 		"vpermilps ymm9, ymm6, 0x93;"
 		"vcmpeqps ymm9, ymm1, ymm9;"
@@ -596,7 +598,7 @@ size_t intersect_vector_avx_asm(uint32_t *list1, size_t size1, uint32_t *list2, 
 
 // 		"vmaskmovps [%q8 + %q0*4], ymm10, ymm0;"
 		"lea r10, [r9*8];"
-		"vmovdqa ymm14, [%q9 + r10*4];" // shuffle_mask_avx
+		"vmovdqa ymm14, [%q[shuffle_mask_avx] + r10*4];" // shuffle_mask_avx
 		// permute8x32
 		"vperm2f128 ymm7, ymm0, ymm0, 1;" // swap table
 		"vpermilps ymm0, ymm0, ymm14;"
@@ -607,19 +609,19 @@ size_t intersect_vector_avx_asm(uint32_t *list1, size_t size1, uint32_t *list2, 
 		"vpslld xmm14, xmm14, 0x1d;" //k0
 		"vinsertf128 ymm14, ymm14, xmm2, 0x1;"
 		"vblendvps ymm0, ymm0, ymm7, ymm14;"
-		"vmovdqu [%q8 + %q0*4], ymm0;"
+		"vmovdqu [%q8 + %q[count]*4], ymm0;"
 
 		"popcnt r9d, r9d;"
-		"add %q0, r9;"
+		"add %q[count], r9;"
 
 		"jmp 1b;"
 	"2: "
 		".att_syntax;"
-		: "=r"(count), "=r"(i_a), "=r"(i_b)
-		: "0"(count), "r"(st_a), "r"(st_b),
-			"r"(list1), "r"(list2), "r"(result),
-			"r"(shuffle_mask_avx),/*10*/"r"(xorconst),
-			"1"(i_a), "2"(i_b)
+		: [count]"=r"(count), [i_a]"=r"(i_a), [i_b]"=r"(i_b)
+		: [st_a]"r"(st_a), [st_b]"r"(st_b),
+			[list1]"r"(list1), [list2]"r"(list2), [result]"r"(result),
+			[shuffle_mask_avx]"r"(shuffle_mask_avx), [xorconst]"r"(xorconst),
+			"0"(count), "1"(i_a), "2"(i_b)
 		: "%rax", "%rbx", "%r8", "%r9","%r10",
 			"ymm0","ymm1","ymm2","ymm3","ymm4",
 			"ymm5","ymm6","ymm7","ymm8","ymm9",
@@ -645,20 +647,20 @@ size_t intersect_vector_avx_asm_count(uint32_t *list1, size_t size1, uint32_t *l
 		"xor rbx, rbx;"
 		"xor r9, r9;"
 	"1: "
-// 		"cmp %1, %4;"
+// 		"cmp %[i_a], %[st_a];"
 // 		"je 2f;"
-		"cmp %2, %5;"
+		"cmp %[i_b], %[st_b];"
 		"je 2f;"
 
-		"vcvtdq2ps ymm1, [%q6 + %q1*4];" // elements are 4 byte
-		"vcvtdq2ps ymm2, [%q7 + %q2*4];"
+		"vcvtdq2ps ymm1, [%q[list1] + %q[i_a]*4];" // elements are 4 byte
+		"vcvtdq2ps ymm2, [%q[list2] + %q[i_b]*4];"
 
-		"mov r8d, [%q6 + %q1*4 + 28];" //int32_t a_max = list1[i_a+7];
-		"cmp r8d, [%q7 + %q2*4 + 28];"
+		"mov r8d, [%q[list1] + %q[i_a]*4 + 28];" //int32_t a_max = list1[i_a+7];
+		"cmp r8d, [%q[list2] + %q[i_b]*4 + 28];"
 		"setle al;"
 		"setge bl;"
-		"lea %q1, [%q1 + rax*8];"
-		"lea %q2, [%q2 + rbx*8];"
+		"lea %q[i_a], [%q[i_a] + rax*8];"
+		"lea %q[i_b], [%q[i_b] + rbx*8];"
 
 		"vcmpeqps ymm10, ymm1, ymm2;"
 		"vperm2f128 ymm6, ymm2, ymm2, 1;"
@@ -691,17 +693,17 @@ size_t intersect_vector_avx_asm_count(uint32_t *list1, size_t size1, uint32_t *l
 		"vmovmskps r9d, ymm10;"
 
 		"popcnt r9d, r9d;"
-		"add %q0, r9;"
+		"add %q[count], r9;"
 
 // 		"jmp 1b;"
-		"cmp %1, %4;"
+		"cmp %[i_a], %[st_a];"
 		"jb 1b;"
 	"2: "
 		".att_syntax;"
-		: "=r"(count), "=r"(i_a), "=r"(i_b)
-		: "0"(count), "r"(st_a), "r"(st_b),
-			"r"(list1), "r"(list2),
-			"1"(i_a), "2"(i_b)
+		: [count]"=r"(count), [i_a]"=r"(i_a), [i_b]"=r"(i_b)
+		: [st_a]"r"(st_a), [st_b]"r"(st_b),
+			[list1]"r"(list1), [list2]"r"(list2),
+			"0"(count), "1"(i_a), "2"(i_b)
 		: "%rax", "%rbx", "%r8", "%r9","%r10",
 			"ymm0","ymm1","ymm2","ymm3","ymm4",
 			"ymm5","ymm6","ymm7","ymm8","ymm9",
