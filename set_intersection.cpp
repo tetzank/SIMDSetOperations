@@ -5,6 +5,9 @@
 #include <cstdio>
 #include <cassert>
 
+#include <immintrin.h>
+
+
 //FIXME: i don't know when this was added, check for my current compiler version
 #if __GNUC__ == 5 && __GNUC_MINOR__ == 2
 #include <parallel/algorithm>
