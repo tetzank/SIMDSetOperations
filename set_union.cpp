@@ -7,8 +7,7 @@
 #include <immintrin.h>
 
 
-//FIXME: i don't know when this was added, check for my current compiler version
-#if __GNUC__ == 5 && __GNUC_MINOR__ == 2
+#if __GNUC__ >= 5
 #include <parallel/algorithm>
 #endif
 
@@ -43,9 +42,9 @@ size_t union_scalar_stl(const uint32_t *list1, size_t size1, const uint32_t *lis
 	uint32_t *endresult = std::set_union(list1, list1+size1, list2, list2+size2, result);
 	return endresult-result;
 }
+
 size_t union_scalar_stl_parallel(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
-//FIXME: i don't know when this was added, check for my current compiler version
-#if __GNUC__ == 5 && __GNUC_MINOR__ == 2
+#if __GNUC__ >= 5
 	uint32_t *endresult = std::__parallel::set_union((uint32_t*)list1, (uint32_t*)(list1+size1), (uint32_t*)list2, (uint32_t*)(list2+size2), result);
 	return endresult-result;
 #else
@@ -125,6 +124,7 @@ void prepare_shuffling_dictionary() {
 
 size_t union_sse(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count = 0;
+#ifdef __SSE2__
 	size_t i_a = 0, i_b = 0;
 	// trim lengths to be a multiple of 4
 	size_t st_a = ((size1-1) / 4) * 4;
@@ -251,6 +251,7 @@ size_t union_sse(const uint32_t *list1, size_t size1, const uint32_t *list2, siz
 
 	// scalar tail
 	count += union_scalar_branchless(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
+#endif
 
 	return count;
 }
@@ -293,20 +294,27 @@ int main(){
 		<< std::chrono::duration<double, std::milli>(t_end-t_start).count()<< " ms"
 		<< std::endl;
 
-	puts("stl set_union:");
-	run(lists, union_scalar_stl);
-	puts("stl parallel set_union: uses more than one core, just for reference here");
-	run(lists, union_scalar_stl_parallel);
+
 	puts("naive scalar union:");
 	run(lists, union_scalar);
+	puts("stl set_union:");
+	run(lists, union_scalar_stl);
+#if __GNUC__ >= 5
+	puts("stl parallel set_union: uses more than one core, just for reference here");
+	run(lists, union_scalar_stl_parallel);
+#endif
 
 	puts("branchless scalar union:");
 	run(lists, union_scalar_branchless);
 
+#ifdef __SSE2__
 	prepare_shuffling_dictionary();
 	puts("SSE union:");
 	run(lists, union_sse);
+#endif
 
+
+	// cleanup
 	for(size_t i=0; i<listCount; ++i){
 		free(lists[i]);
 	}

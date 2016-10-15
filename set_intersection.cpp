@@ -8,8 +8,7 @@
 #include <immintrin.h>
 
 
-//FIXME: i don't know when this was added, check for my current compiler version
-#if __GNUC__ == 5 && __GNUC_MINOR__ == 2
+#if __GNUC__ >= 5
 #include <parallel/algorithm>
 #endif
 
@@ -54,9 +53,8 @@ size_t intersect_scalar_stl(uint32_t *list1, size_t size1, uint32_t *list2, size
 	return endresult-result;
 }
 size_t intersect_scalar_stl_parallel(uint32_t *list1, size_t size1, uint32_t *list2, size_t size2, uint32_t *result){
-//FIXME: i don't know when this was added, check for my current compiler version
-#if __GNUC__ == 5 && __GNUC_MINOR__ == 2
-	uint32_t *endresult = std::__parallel::set_intersection(list1, list1+size1, list2, list2+size2, result);
+#if __GNUC__ >= 5
+	uint32_t *endresult = __gnu_parallel::set_intersection(list1, list1+size1, list2, list2+size2, result);
 	return endresult-result;
 #else
 	return 0;
@@ -1152,8 +1150,7 @@ void run(uint32_t **lists,
 		auto t_start = std::chrono::high_resolution_clock::now();
 		size_t intersected=0;
 		for(size_t repeat=0; repeat<repeatCount; ++repeat){
-			size_t i;
-			for(/*size_t */i=0; i<listCount; ++i){
+			for(size_t i=0; i<listCount; ++i){
 				uint32_t *intersected_list = new uint32_t[arraySize];
 				for(size_t j=i+1; j<listCount; ++j){
 					intersected += func(
@@ -1232,31 +1229,45 @@ int main(){
 	run(lists, intersect_scalar, intersect_scalar_count);
 	puts("stl set_intersection:");
 	run(lists, intersect_scalar_stl);
+#if __GNUC__ >= 5
 	puts("stl parallel set_intersection: uses more than one core, just for reference here");
 	run(lists, intersect_scalar_stl_parallel);
+#endif
 	puts("c branchless scalar:");
 	run(lists, intersect_scalar_branchless_c, intersect_scalar_branchless_c_count);
+
 	puts("asm branchless scalar:");
 	run(lists, intersect_scalar_branchless, intersect_scalar_branchless_count);
 
+#ifdef __SSE2__
 	prepare_shuffling_dictionary();
 	puts("128bit SSE vector:");
 	run(lists, intersect_vector_SSE, intersect_vector_SSE_count);
 	puts("SSE asm:");
 	run(lists, intersect_vector_SSE_asm);
+#endif
 
+
+#ifdef __AVX__
 	prepare_shuffling_dictionary_avx();
+	
 	puts("256bit AVX vector: (not AVX2)");
 	run(lists, intersect_vector_avx, intersect_vector_avx_count);
 	puts("256bit AVX vector: (not AVX2) - asm");
-	run(lists, /*intersect_vector_avx_asm*/nullptr, intersect_vector_avx_asm_count); //FIXME: normal intersection segfaults
+	//FIXME: normal intersection segfaults
+	//run(lists, intersect_vector_avx_asm, intersect_vector_avx_asm_count);
+	run(lists, nullptr, intersect_vector_avx_asm_count); 
 
+#ifdef __AVX2__
 	puts("256bit AVX2 vector");
 	run(lists, intersect_vector_avx2, intersect_vector_avx2_count);
 	puts("256bit AVX2 vector - asm");
+	//TODO: implement normal intersection
 	run(lists, nullptr, intersect_vector_avx2_asm_count);
+#endif
 
 	free(shuffle_mask_avx);
+#endif
 
 
 	//puts("SIMD Galloping V1: AVX");
