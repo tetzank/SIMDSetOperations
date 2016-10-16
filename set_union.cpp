@@ -55,13 +55,12 @@ size_t union_scalar_stl_parallel(const uint32_t *list1, size_t size1, const uint
 size_t union_scalar_branchless(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	const uint32_t *end1 = list1+size1, *end2 = list2+size2;
 	uint32_t *endresult=result;
-#ifndef NOASM
 	asm(".intel_syntax noprefix;"
 		"xor rax, rax;"
 		"xor rbx, rbx;"
 	"1: "
 		"cmp %[list1], %[end1];"  // list1 != end1
-		"je 2f;"
+		"je 3f;"
 		"cmp %[list2], %[end2];"  // list2 != end2
 		"je 2f;"
 
@@ -85,19 +84,28 @@ size_t union_scalar_branchless(const uint32_t *list1, size_t size1, const uint32
 // 		"cmp %2, %4;"  // list2 != end2
 // 		"jne 1b;"
 	"2: "
+		// inline memcpy
+		//"cld;"
+		// rsi - list1, rdi - endresult, rcx - end1
+		"sub %[end1], %[list1];" //
+		"rep movsb;"             // copy rest of list1
+	"3: "
+		"mov rcx, %[end2];"      // overwrites rcx which contained end1
+		"mov rsi, %[list2];"     // overwrites rsi which contained list1
+		"sub rcx, %[list2];"     //
+		"rep movsb;"             // copy rest of list2
 		".att_syntax;"
 
-		: [endresult]"=r"(endresult), [list1]"=r"(list1), [list2]"=r"(list2)
-		: [end1]"r"(end1), [end2]"r"(end2),
+		: [endresult]"=D"(endresult), [list1]"=S"(list1), [list2]"=r"(list2)
+		: [end1]"c"(end1), [end2]"r"(end2),
 			"0"(endresult), "1"(list1), "2"(list2)
 		: "%rax","%rbx", "%r10","%r11", "memory", "cc"
 	);
-#endif
 	// copy rest, can't be the same
-	memcpy(endresult, list1, (end1-list1)*sizeof(uint32_t));
-	endresult += end1 - list1;
-	memcpy(endresult, list2, (end2-list2)*sizeof(uint32_t));
-	endresult += end2 - list2;
+	//memcpy(endresult, list1, (end1-list1)*sizeof(uint32_t));
+	//endresult += end1 - list1;
+	//memcpy(endresult, list2, (end2-list2)*sizeof(uint32_t));
+	//endresult += end2 - list2;
 
 	return endresult-result;
 }
@@ -193,7 +201,7 @@ size_t union_sse(const uint32_t *list1, size_t size1, const uint32_t *list2, siz
 				"mov r11, %q1;"
 				"cmovbe r10, %q7;"
 				"cmovbe r11, %q0;"
-				"vmovdqa %2, [r10 + r11*4];" // this might read past the end of one array, not used afterwards as loop head fails
+				"vmovdqa %2, [r10 + r11*4];" //FIXME: this might read past the end of one array, not used afterwards as loop head fails
 
 				".att_syntax"
 				: "=r"(i_a), "=r"(i_b), "=x"(v_b)
@@ -304,7 +312,7 @@ int main(){
 	run(lists, union_scalar_stl_parallel);
 #endif
 
-	puts("branchless scalar union:");
+	puts("asm branchless scalar union:");
 	run(lists, union_scalar_branchless);
 
 #ifdef __SSE2__
