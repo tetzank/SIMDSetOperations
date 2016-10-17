@@ -152,20 +152,20 @@ size_t intersect_vector_avx2_asm_count(uint32_t *list1, size_t size1, uint32_t *
 		"xor rbx, rbx;"
 		"xor r9, r9;"
 	"1: "
-// 		"cmp %1, %4;"
+// 		"cmp %[i_a], %[st_a];"
 // 		"je 2f;"
-		"cmp %2, %5;"
+		"cmp %[i_b], %[st_b];"
 		"je 2f;"
 
-		"vmovdqa ymm1, [%q6 + %q1*4];" // elements are 4 byte
-		"vmovdqa ymm2, [%q7 + %q2*4];"
+		"vmovdqa ymm1, [%q[list1] + %q[i_a]*4];" // elements are 4 byte
+		"vmovdqa ymm2, [%q[list2] + %q[i_b]*4];"
 
-		"mov r8d, [%q6 + %q1*4 + 28];" //int32_t a_max = list1[i_a+7];
-		"cmp r8d, [%q7 + %q2*4 + 28];"
+		"mov r8d, [%q[list1] + %q[i_a]*4 + 28];" //int32_t a_max = list1[i_a+7];
+		"cmp r8d, [%q[list2] + %q[i_b]*4 + 28];"
 		"setle al;"
 		"setge bl;"
-		"lea %q1, [%q1 + rax*8];"
-		"lea %q2, [%q2 + rbx*8];"
+		"lea %q[i_a], [%q[i_a] + rax*8];"
+		"lea %q[i_b], [%q[i_b] + rbx*8];"
 
 		"vpcmpeqd ymm10, ymm1, ymm2;"
 		"vperm2f128 ymm6, ymm2, ymm2, 1;"
@@ -198,17 +198,17 @@ size_t intersect_vector_avx2_asm_count(uint32_t *list1, size_t size1, uint32_t *
 		"vmovmskps r9d, ymm10;"
 
 		"popcnt r9d, r9d;"
-		"add %q0, r9;"
+		"add %q[count], r9;"
 
 // 		"jmp 1b;"
-		"cmp %1, %4;"
+		"cmp %[i_a], %[st_a];"
 		"jb 1b;"
 	"2: "
 		".att_syntax;"
-		: "=r"(count), "=r"(i_a), "=r"(i_b)
-		: "0"(count), "r"(st_a), "r"(st_b),
-			"r"(list1), "r"(list2),
-			"1"(i_a), "2"(i_b)
+		: [count]"=r"(count), [i_a]"=r"(i_a), [i_b]"=r"(i_b)
+		: [st_a]"r"(st_a), [st_b]"r"(st_b),
+			[list1]"r"(list1), [list2]"r"(list2),
+			"0"(count), "1"(i_a), "2"(i_b)
 		: "%rax", "%rbx", "%r8", "%r9","%r10",
 			"ymm0","ymm1","ymm2","ymm3","ymm4",
 			"ymm5","ymm6","ymm7","ymm8","ymm9",
