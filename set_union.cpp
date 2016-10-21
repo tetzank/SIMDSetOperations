@@ -61,7 +61,7 @@ int main(){
 #ifdef __SSE2__
 	prepare_shuffling_dictionary();
 	puts("SSE union:");
-	run(lists, union_sse);
+	run(lists, union_vector_sse);
 #endif
 
 

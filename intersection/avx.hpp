@@ -48,7 +48,7 @@ inline __m256 permute8x32(__m256 const &table, __m256i const &index){
 }
 #endif
 
-size_t intersect_vector_avx(uint32_t *list1, size_t size1, uint32_t *list2, size_t size2, uint32_t *result){
+size_t intersect_vector_avx(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;
 #ifdef __AVX__
 	size_t st_a = (size1 / 8) * 8;
@@ -119,7 +119,7 @@ size_t intersect_vector_avx(uint32_t *list1, size_t size1, uint32_t *list2, size
 #endif
 	return count;
 }
-size_t intersect_vector_avx_count(uint32_t *list1, size_t size1, uint32_t *list2, size_t size2){
+size_t intersect_vector_avx_count(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2){
 	size_t count=0, i_a=0, i_b=0;
 #ifdef __AVX__
 	size_t st_a = (size1 / 8) * 8;
@@ -183,7 +183,7 @@ size_t intersect_vector_avx_count(uint32_t *list1, size_t size1, uint32_t *list2
 }
 
 //FIXME: broken atm
-size_t intersect_vector_avx_asm(uint32_t *list1, size_t size1, uint32_t *list2, size_t size2, uint32_t *result){
+size_t intersect_vector_avx_asm(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;
 #ifdef __AVX__
 	size_t st_a = (size1 / 8) * 8;
@@ -282,7 +282,7 @@ size_t intersect_vector_avx_asm(uint32_t *list1, size_t size1, uint32_t *list2, 
 #endif
 	return count;
 }
-size_t intersect_vector_avx_asm_count(uint32_t *list1, size_t size1, uint32_t *list2, size_t size2){
+size_t intersect_vector_avx_asm_count(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2){
 	size_t count=0, i_a=0, i_b=0;
 #ifdef __AVX__
 	size_t st_a = (size1 / 8) * 8;

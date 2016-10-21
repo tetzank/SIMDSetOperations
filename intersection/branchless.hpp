@@ -2,7 +2,7 @@
 #define INTERSECTION_BRANCHLESS_HPP_
 
 
-size_t intersect_scalar_branchless_c(uint32_t *list1, size_t size1, uint32_t *list2, size_t size2, uint32_t *result){
+size_t intersect_scalar_branchless_c(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t counter=0, pos1=0, pos2=0;
 	while(pos1 < size1 && pos2 < size2){
 		uint32_t data1=list1[pos1], data2=list2[pos2];
@@ -15,7 +15,7 @@ size_t intersect_scalar_branchless_c(uint32_t *list1, size_t size1, uint32_t *li
 	return counter;
 }
 
-size_t intersect_scalar_branchless_c_count(uint32_t *list1, size_t size1, uint32_t *list2, size_t size2){
+size_t intersect_scalar_branchless_c_count(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2){
 	size_t counter=0, pos1=0, pos2=0;
 	while(pos1 < size1 && pos2 < size2){
 		uint32_t data1=list1[pos1], data2=list2[pos2];
@@ -27,8 +27,8 @@ size_t intersect_scalar_branchless_c_count(uint32_t *list1, size_t size1, uint32
 }
 
 
-size_t intersect_scalar_branchless(uint32_t *list1, size_t size1, uint32_t *list2, size_t size2, uint32_t *result){
-	uint32_t *end1 = list1+size1, *end2 = list2+size2, *endresult;
+size_t intersect_scalar_branchless(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
+	const uint32_t *end1 = list1+size1, *end2 = list2+size2, *endresult=result;
 	asm(".intel_syntax noprefix;"
 		"xor rax, rax;"
 		"xor rbx, rbx;"
@@ -63,8 +63,8 @@ size_t intersect_scalar_branchless(uint32_t *list1, size_t size1, uint32_t *list
 	return endresult-result;
 }
 
-size_t intersect_scalar_branchless_count(uint32_t *list1, size_t size1, uint32_t *list2, size_t size2){
-	uint32_t *end1 = list1+size1, *end2 = list2+size2;
+size_t intersect_scalar_branchless_count(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2){
+	const uint32_t *end1 = list1+size1, *end2 = list2+size2;
 	size_t count=0;
 	asm(".intel_syntax noprefix;"
 		"xor rax, rax;"

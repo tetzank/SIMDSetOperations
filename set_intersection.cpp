@@ -16,9 +16,9 @@
 
 
 void run(uint32_t **lists,
-	size_t (*func)(uint32_t*,size_t,uint32_t*,size_t,uint32_t*)=nullptr,
-	size_t (*func_count)(uint32_t*,size_t,uint32_t*,size_t)=nullptr,
-	size_t (*func_index)(uint32_t*,size_t,uint32_t*,size_t,uint32_t*)=nullptr
+	size_t (*func)(const uint32_t*,size_t,const uint32_t*,size_t,uint32_t*)=nullptr,
+	size_t (*func_count)(const uint32_t*,size_t,const uint32_t*,size_t)=nullptr,
+	size_t (*func_index)(const uint32_t*,size_t,const uint32_t*,size_t,uint32_t*)=nullptr
 ){
 #if 1
 	if(func){
@@ -139,9 +139,9 @@ int main(){
 #ifdef __SSE2__
 	prepare_shuffling_dictionary();
 	puts("128bit SSE vector:");
-	run(lists, intersect_vector_SSE, intersect_vector_SSE_count);
+	run(lists, intersect_vector_sse, intersect_vector_sse_count);
 	puts("SSE asm:");
-	run(lists, intersect_vector_SSE_asm);
+	run(lists, intersect_vector_sse_asm);
 #endif
 
 

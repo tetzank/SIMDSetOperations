@@ -4,7 +4,7 @@
 #include <immintrin.h>
 
 
-size_t intersect_vector_avx2(uint32_t *list1, size_t size1, uint32_t *list2, size_t size2, uint32_t *result){
+size_t intersect_vector_avx2(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;
 #ifdef __AVX2__
 	size_t st_a = (size1 / 8) * 8;
@@ -76,7 +76,7 @@ size_t intersect_vector_avx2(uint32_t *list1, size_t size1, uint32_t *list2, siz
 #endif
 	return count;
 }
-size_t intersect_vector_avx2_count(uint32_t *list1, size_t size1, uint32_t *list2, size_t size2){
+size_t intersect_vector_avx2_count(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2){
 	size_t count=0, i_a=0, i_b=0;
 #ifdef __AVX2__
 	size_t st_a = (size1 / 8) * 8;
@@ -135,12 +135,14 @@ size_t intersect_vector_avx2_count(uint32_t *list1, size_t size1, uint32_t *list
 	return count;
 }
 
-
-size_t intersect_vector_avx2_asm(uint32_t *list1, size_t size1, uint32_t *list2, size_t size2, uint32_t *result){
+#if 0
+size_t intersect_vector_avx2_asm(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	//TODO
 	return 0;
 }
-size_t intersect_vector_avx2_asm_count(uint32_t *list1, size_t size1, uint32_t *list2, size_t size2){
+#endif
+
+size_t intersect_vector_avx2_asm_count(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2){
 	size_t count=0, i_a=0, i_b=0;
 #ifdef __AVX2__
 	size_t st_a = (size1 / 8) * 8;
