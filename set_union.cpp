@@ -2,6 +2,7 @@
 #include <chrono>
 
 #include "constants.h"
+#include "shuffle_dictionary.hpp"
 
 #include "union/naive.hpp"
 #include "union/stl.hpp"

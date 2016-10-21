@@ -6,26 +6,6 @@
 #include <immintrin.h>
 
 
-// a simple implementation, we don't care about performance here
-static __m128i shuffle_mask[16]; // precomputed dictionary
-void prepare_shuffling_dictionary() {
-	for(int i = 0; i < 16; i++) {
-		int counter = 0;
-		char permutation[16];
-		memset(permutation, 0xFF, sizeof(permutation));
-		for(char b = 0; b < 4; b++) {
-			if(i & (1 << b)) { // get bit b from i
-				permutation[counter++] = 4*b;
-				permutation[counter++] = 4*b + 1;
-				permutation[counter++] = 4*b + 2;
-				permutation[counter++] = 4*b + 3;
-			}
-		}
-		__m128i mask = _mm_loadu_si128((const __m128i*)permutation);
-		shuffle_mask[i] = mask;
-	}
-}
-
 // taken from: https://highlyscalable.wordpress.com/2012/06/05/fast-intersection-sorted-lists-sse/
 size_t intersect_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count = 0;

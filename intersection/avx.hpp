@@ -4,23 +4,6 @@
 #include <immintrin.h>
 
 
-static uint32_t *shuffle_mask_avx;
-void prepare_shuffling_dictionary_avx(){
-	shuffle_mask_avx = (uint32_t*)aligned_alloc(32, 256*8*sizeof(uint32_t));
-	for(uint32_t i=0; i<256; ++i){
-		int count=0, rest=7;
-		for(int b=0; b<8; ++b){
-			if(i & (1 << b)){
-				// n index at pos p - move nth element to pos p
-				shuffle_mask_avx[i*8 + count] = b; // move all set bits to beginning
-				++count;
-			}else{
-				shuffle_mask_avx[i*8 + rest] = b; // move rest at the end
-				--rest;
-			}
-		}
-	}
-}
 #ifdef __AVX__
 // taken from asmlib by agner: http://www.agner.org/optimize/
 // emulate permute8x32 AVX2-instruction in AVX

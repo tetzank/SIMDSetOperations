@@ -3,7 +3,7 @@
 
 #include "projectconfig.h"
 #include "constants.h"
-
+#include "shuffle_dictionary.hpp"
 
 #include "intersection/naive.hpp"
 #include "intersection/stl.hpp"
