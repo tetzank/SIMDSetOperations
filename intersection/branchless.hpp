@@ -55,9 +55,8 @@ size_t intersect_scalar_branchless(const uint32_t *list1, size_t size1, const ui
 	"2: "
 		".att_syntax;"
 
-		: [endresult]"=r"(endresult)
-		: [list1]"r"(list1), [list2]"r"(list2), [end1]"r"(end1), [end2]"r"(end2),
-			"0"(result)
+		: [endresult]"+r"(endresult), [list1]"+r"(list1), [list2]"+r"(list2)
+		: [end1]"r"(end1), [end2]"r"(end2)
 		: "%rax","%rbx","%rcx", "%r10", "memory", "cc"
 	);
 	return endresult-result;
