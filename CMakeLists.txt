@@ -35,17 +35,23 @@ set_target_properties(set_intersection PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS}
 add_executable(set_union set_union.cpp)
 set_target_properties(set_union PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 
+add_executable(set_difference set_difference.cpp)
+set_target_properties(set_difference PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 
 if(${GBENCHMARK_FOUND})
 	add_definitions(${GBENCHMARK_INCLUDE_DIR})
 
 	add_executable(benchmark_intersection benchmark_intersection.cpp)
-	target_link_libraries(benchmark_intersection ${GBENCHMARK_STATIC_LIB})
+	target_link_libraries(benchmark_intersection ${GBENCHMARK_LIBRARIES})
 	set_target_properties(benchmark_intersection PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 
 	add_executable(benchmark_union benchmark_union.cpp)
-	target_link_libraries(benchmark_union ${GBENCHMARK_STATIC_LIB})
+	target_link_libraries(benchmark_union ${GBENCHMARK_LIBRARIES})
 	set_target_properties(benchmark_union PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
+
+	add_executable(benchmark_difference benchmark_difference.cpp)
+	target_link_libraries(benchmark_difference ${GBENCHMARK_LIBRARIES})
+	set_target_properties(benchmark_difference PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 else()
 	message(STATUS "google benchmark not found, skipping benchmark programs")
 endif()
