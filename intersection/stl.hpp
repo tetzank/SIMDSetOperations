@@ -21,4 +21,5 @@ size_t intersect_scalar_stl_parallel(const uint32_t *list1, size_t size1, const 
 #endif
 }
 
+
 #endif

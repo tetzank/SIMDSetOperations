@@ -20,14 +20,9 @@ size_t intersect_vector_avx2(const uint32_t *list1, size_t size1, const uint32_t
 		i_a += (a_max <= b_max) * 8;
 		i_b += (a_max >= b_max) * 8;
 
-		// AVX is missing many integer operations, AVX2 has them
-		//__m256 vfa = _mm256_cvtepi32_ps(v_a);
-		//__m256 vfb = _mm256_cvtepi32_ps(v_b);
-
 		constexpr int32_t cyclic_shift = _MM_SHUFFLE(0,3,2,1); //rotating right
 		constexpr int32_t cyclic_shift2= _MM_SHUFFLE(2,1,0,3); //rotating left
 		constexpr int32_t cyclic_shift3= _MM_SHUFFLE(1,0,3,2); //between
-		// AVX2: _mm256_cmpeq_epi32
 		__m256i cmp_mask1 = _mm256_cmpeq_epi32(v_a, v_b);
 		__m256 rot1 = _mm256_permute_ps((__m256)v_b, cyclic_shift);
 		__m256i cmp_mask2 = _mm256_cmpeq_epi32(v_a, (__m256i)rot1);
@@ -58,13 +53,8 @@ size_t intersect_vector_avx2(const uint32_t *list1, size_t size1, const uint32_t
 			)
 		);
 		int32_t mask = _mm256_movemask_ps((__m256)cmp_mask);
-		// just use unchanged v_a, don't convert back vfa
-		// AVX2: _mm256_maskstore_epi32 directly with cmp_mask
-		// just use float variant
-// 		_mm256_maskstore_ps((float*)&result[count], (__m256i)cmp_mask, (__m256)v_a);
-// 		_mm256_store_si256();
+
 		__m256i idx = _mm256_load_si256((const __m256i*)&shuffle_mask_avx[mask*8]);
-		//__m256i p = (__m256i)permute8x32((__m256)v_a, idx);
 		__m256i p = _mm256_permutevar8x32_epi32(v_a, idx);
 		_mm256_storeu_si256((__m256i*)&result[count], p);
 
