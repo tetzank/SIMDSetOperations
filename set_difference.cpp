@@ -9,6 +9,7 @@
 #include "difference/naive.hpp"
 #include "difference/stl.hpp"
 #include "difference/sse.hpp"
+#include "difference/avx2.hpp"
 
 
 
@@ -71,6 +72,15 @@ int main(void){
 	prepare_shuffling_dictionary();
 	puts("128bit SSE vector:");
 	run(lists, difference_vector_sse);
+#endif
+
+#ifdef __AVX2__
+	prepare_shuffling_dictionary_avx();
+
+	puts("256bit AVX2 vector");
+	run(lists, difference_vector_avx2);
+
+	free(shuffle_mask_avx);
 #endif
 
 	for(size_t i=0; i<listCount; ++i){
