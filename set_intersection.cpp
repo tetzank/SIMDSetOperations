@@ -159,8 +159,7 @@ int main(){
 	puts("256bit AVX2 vector");
 	run(lists, intersect_vector_avx2, intersect_vector_avx2_count);
 	puts("256bit AVX2 vector - asm");
-	//TODO: implement normal intersection
-	run(lists, nullptr, intersect_vector_avx2_asm_count);
+	run(lists, intersect_vector_avx2_asm, intersect_vector_avx2_asm_count);
 #endif
 
 	free(shuffle_mask_avx);
