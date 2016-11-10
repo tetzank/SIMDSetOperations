@@ -3,6 +3,10 @@
 
 #include <immintrin.h>
 
+#include <algorithm>
+
+#include "branchless.hpp"
+
 
 size_t union_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count = 0;

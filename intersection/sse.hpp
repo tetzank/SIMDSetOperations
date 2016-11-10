@@ -5,6 +5,8 @@
 
 #include <immintrin.h>
 
+#include "naive.hpp"
+
 
 // taken from: https://highlyscalable.wordpress.com/2012/06/05/fast-intersection-sorted-lists-sse/
 size_t intersect_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){

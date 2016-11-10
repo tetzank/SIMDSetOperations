@@ -5,6 +5,8 @@
 
 #include <immintrin.h>
 
+#include "naive.hpp"
+
 
 size_t difference_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count = 0;
@@ -79,8 +81,13 @@ size_t difference_vector_sse(const uint32_t *list1, size_t size1, const uint32_t
 			++i_a; mask >>= 1;
 		}else{
 			//FIXME: copy&paste of scalar code
-			if(i_b < size2){
-				memcpy(result+count, list1, (size1-i_a)*sizeof(uint32_t));
+			if(i_b == size2){
+				while(i_a < size1){
+					if((mask & 1) == 0){
+						result[count++] = list1[i_a];
+					}
+					++i_a; mask >>=1;
+				}
 				return count + (size1 - i_a);
 			}
 			if(list1[i_a] < list2[i_b]){

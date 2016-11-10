@@ -1,5 +1,5 @@
-#ifndef INTERSECTION_AVX2_HPP_
-#define INTERSECTION_AVX2_HPP_
+#ifndef DIFFERENCE_AVX2_HPP_
+#define DIFFERENCE_AVX2_HPP_
 
 #include <immintrin.h>
 
@@ -87,8 +87,13 @@ size_t difference_vector_avx2(const uint32_t *list1, size_t size1, const uint32_
 			++i_a; mask >>= 1;
 		}else{
 			//FIXME: copy&paste of scalar code
-			if(i_b < size2){
-				memcpy(result+count, list1, (size1-i_a)*sizeof(uint32_t));
+			if(i_b == size2){
+				while(i_a < size1){
+					if((mask & 1) == 0){
+						result[count++] = list1[i_a];
+					}
+					++i_a; mask >>=1;
+				}
 				return count + (size1 - i_a);
 			}
 			if(list1[i_a] < list2[i_b]){

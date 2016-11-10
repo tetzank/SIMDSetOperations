@@ -3,6 +3,8 @@
 
 #include <immintrin.h>
 
+#include "branchless.hpp"
+
 
 #ifdef __AVX__
 // taken from asmlib by agner: http://www.agner.org/optimize/
@@ -166,6 +168,7 @@ size_t intersect_vector_avx_count(const uint32_t *list1, size_t size1, const uin
 }
 
 //FIXME: broken atm
+#if 0
 size_t intersect_vector_avx_asm(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;
 #ifdef __AVX__
@@ -265,6 +268,7 @@ size_t intersect_vector_avx_asm(const uint32_t *list1, size_t size1, const uint3
 #endif
 	return count;
 }
+#endif
 size_t intersect_vector_avx_asm_count(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2){
 	size_t count=0, i_a=0, i_b=0;
 #ifdef __AVX__

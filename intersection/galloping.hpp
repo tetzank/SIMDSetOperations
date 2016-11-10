@@ -3,6 +3,8 @@
 
 #include <immintrin.h>
 
+#include <cassert>
+
 
 // a naive version inspired by this paper:
 // "SIMD Compression and the Intersection of Sorted Integers"
