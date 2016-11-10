@@ -12,6 +12,8 @@
 #include "intersection/avx.hpp"
 #include "intersection/avx2.hpp"
 #include "intersection/galloping.hpp"
+#include "intersection/galloping_sse.hpp"
+#include "intersection/galloping_avx2.hpp"
 
 
 
@@ -20,7 +22,6 @@ void run(uint32_t **lists,
 	size_t (*func_count)(const uint32_t*,size_t,const uint32_t*,size_t)=nullptr,
 	size_t (*func_index)(const uint32_t*,size_t,const uint32_t*,size_t,uint32_t*)=nullptr
 ){
-#if 1
 	if(func){
 		auto t_start = std::chrono::high_resolution_clock::now();
 		size_t intersected=0;
@@ -85,22 +86,6 @@ void run(uint32_t **lists,
 			intersected
 		);
 	}
-#else
-	constexpr size_t size = 20;
-	for(size_t i=0; i<size; ++i){
-		printf("%3i; %3i\n", lists[0][i], lists[1][i]);
-	}
-
-	uint32_t *intersected_list = (uint32_t*)aligned_alloc(32, arraySize*sizeof(uint32_t));
-	size_t intersected = func(lists[0], size, lists[1], size, intersected_list);
-
-	puts("intersected:");
-	for(size_t i=0; i<intersected; ++i){
-		printf("%i, ", intersected_list[i]);
-	}
-	printf("\n\n");
-	free(intersected_list);
-#endif
 }
 
 int main(){
@@ -122,6 +107,7 @@ int main(){
 		std::chrono::duration<double, std::milli>(t_end-t_start).count()
 	);
 
+#if 1
 	//puts("scalar:");
 	//run(lists, intersect_scalar, intersect_scalar_count, intersect_scalar_index);
 	puts("stl set_intersection:");
@@ -140,20 +126,22 @@ int main(){
 	prepare_shuffling_dictionary();
 	puts("128bit SSE vector:");
 	run(lists, intersect_vector_sse, intersect_vector_sse_count);
-	puts("SSE asm:");
+	puts("128bit SSE vector - asm:");
 	run(lists, intersect_vector_sse_asm);
 #endif
-
+#endif
 
 #ifdef __AVX__
 	prepare_shuffling_dictionary_avx();
-	
+
+#if 1
 	puts("256bit AVX vector: (not AVX2)");
 	run(lists, intersect_vector_avx, intersect_vector_avx_count);
 	puts("256bit AVX vector: (not AVX2) - asm");
 	//FIXME: normal intersection segfaults
 	//run(lists, intersect_vector_avx_asm, intersect_vector_avx_asm_count);
 	run(lists, nullptr, intersect_vector_avx_asm_count); 
+#endif
 
 #ifdef __AVX2__
 	puts("256bit AVX2 vector");
@@ -165,9 +153,29 @@ int main(){
 	free(shuffle_mask_avx);
 #endif
 
+#if 1
+	puts("v1");
+	run(lists, v1);
+	puts("v3");
+	run(lists, v3);
+	puts("SIMD galloping");
+	run(lists, SIMDgalloping);
+	puts("v1_avx2");
+	run(lists, v1_avx2);
+	puts("v3_avx2");
+	run(lists, v3_avx2);
+	puts("SIMD galloping AVX2");
+	run(lists, SIMDgalloping_avx2);
+#endif
+#if 0
+	puts("galloping SSE");
+	run(lists, SIMDintersection);
+	puts("galloping AVX2");
+	run(lists, SIMDintersection_avx2);
+#endif
 
-	//puts("SIMD Galloping V1: AVX");
-	//run(lists, intersect_galloping_V1_AVX, intersect_galloping_V1_AVX_count);
+//	puts("SIMD Galloping V1: AVX");
+//	run(lists, intersect_galloping_V1_AVX, intersect_galloping_V1_AVX_count);
 // 	puts("SIMD Galloping V1: SSE4.2"); //FIXME: broken
 // 	run(lists, intersect_galloping_V1_SSE, intersect_galloping_V1_SSE_count);
 

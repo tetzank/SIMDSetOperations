@@ -9,6 +9,8 @@
 #include "intersection/sse.hpp"
 #include "intersection/avx.hpp"
 #include "intersection/avx2.hpp"
+#include "intersection/galloping_sse.hpp"
+#include "intersection/galloping_avx2.hpp"
 
 
 BENCHMARK_TEMPLATE(BM_benchmark, intersect_scalar)->RangePair(8, 8<<10, 8, 8<<10);
@@ -22,6 +24,9 @@ BENCHMARK_TEMPLATE(BM_benchmark, intersect_vector_sse_asm)->RangePair(8, 8<<10, 
 BENCHMARK_TEMPLATE(BM_benchmark, intersect_vector_avx)->RangePair(8, 8<<10, 8, 8<<10);
 BENCHMARK_TEMPLATE(BM_benchmark, intersect_vector_avx2)->RangePair(8, 8<<10, 8, 8<<10);
 BENCHMARK_TEMPLATE(BM_benchmark, intersect_vector_avx2_asm)->RangePair(8, 8<<10, 8, 8<<10);
+
+BENCHMARK_TEMPLATE(BM_benchmark, SIMDintersection)->RangePair(8, 8<<10, 8, 8<<10);
+BENCHMARK_TEMPLATE(BM_benchmark, SIMDintersection_avx2)->RangePair(8, 8<<10, 8, 8<<10);
 
 
 BENCHMARK_MAIN()
