@@ -137,8 +137,8 @@ size_t intersect_vector_avx2_asm(const uint32_t *list1, size_t size1, const uint
 		"xor rbx, rbx;"
 		"xor r9, r9;"
 	"1: "
-// 		"cmp %[i_a], %[st_a];"
-// 		"je 2f;"
+ 		"cmp %[i_a], %[st_a];"
+ 		"je 2f;"
 		"cmp %[i_b], %[st_b];"
 		"je 2f;"
 
@@ -193,9 +193,7 @@ size_t intersect_vector_avx2_asm(const uint32_t *list1, size_t size1, const uint
 		"popcnt r9d, r9d;"
 		"add %q[count], r9;"
 
-// 		"jmp 1b;"
-		"cmp %[i_a], %[st_a];"
-		"jb 1b;"
+ 		"jmp 1b;"
 	"2: "
 		".att_syntax;"
 		: [count]"+r"(count), [i_a]"+r"(i_a), [i_b]"+r"(i_b)
@@ -228,8 +226,8 @@ size_t intersect_vector_avx2_asm_count(const uint32_t *list1, size_t size1, cons
 		"xor rbx, rbx;"
 		"xor r9, r9;"
 	"1: "
-// 		"cmp %[i_a], %[st_a];"
-// 		"je 2f;"
+		"cmp %[i_a], %[st_a];"
+		"je 2f;"
 		"cmp %[i_b], %[st_b];"
 		"je 2f;"
 
@@ -276,9 +274,7 @@ size_t intersect_vector_avx2_asm_count(const uint32_t *list1, size_t size1, cons
 		"popcnt r9d, r9d;"
 		"add %q[count], r9;"
 
-// 		"jmp 1b;"
-		"cmp %[i_a], %[st_a];"
-		"jb 1b;"
+		"jmp 1b;"
 	"2: "
 		".att_syntax;"
 		: [count]"+r"(count), [i_a]"+r"(i_a), [i_b]"+r"(i_b)
