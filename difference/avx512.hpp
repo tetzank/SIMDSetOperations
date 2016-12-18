@@ -1,0 +1,113 @@
+#ifndef DIFFERENCE_AVX512_HPP_
+#define DIFFERENCE_AVX512_HPP_
+
+#include <immintrin.h>
+
+#include "naive.hpp"
+
+
+
+size_t difference_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
+	size_t count=0, i_a=0, i_b=0;
+#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
+	size_t st_a = (size1 / 8) * 8;
+	size_t st_b = (size2 / 8) * 8;
+	int mask;
+
+	asm(".intel_syntax noprefix;"
+
+		//"mov eax, 65280;"
+		"mov eax, 0xff00;"
+		"kmovw k2, eax;"
+		"xor rax, rax;"
+		"xor rbx, rbx;"
+		"xor r9, r9;"
+		"vpxord zmm0, zmm0, zmm0;"
+		"kxnorw k4, k4, k4;"
+	"1: "
+ 		"cmp %[i_a], %[st_a];"
+ 		"je 2f;"
+		"cmp %[i_b], %[st_b];"
+		"je 2f;"
+
+		"vmovdqa ymm1, [%q[list1] + %q[i_a]*4];" // elements are 4 byte
+		"vmovdqa ymm2, [%q[list2] + %q[i_b]*4];"
+
+		"mov r8d, [%q[list1] + %q[i_a]*4 + 28];" //int32_t a_max = list1[i_a+7];
+		"cmp r8d, [%q[list2] + %q[i_b]*4 + 28];"
+		"setle al;"
+		"setge bl;"
+		"lea %q[i_a], [%q[i_a] + rax*8];"
+		"lea %q[i_b], [%q[i_b] + rbx*8];"
+
+		"mov r9d, eax;"
+		"neg r9d;"
+		"kmovw k3, r9d;"
+
+		//TODO: vinserti32x8 only available in avx512dq which KNL doesn't have
+		"vinserti32x8 zmm3, zmm2, ymm1, 1;" // combine to one zmm
+		"vpconflictd zmm4, zmm3;" //"vpconflictd zmm4%{k3%}%{z%}, zmm3;"
+		"vpcmpeqd k1%{k2%}, zmm4, zmm0;"
+		//
+		"kandw k4, k4, k1;"
+		"kandw k1, k4, k3;" // only store if first list is stepped
+		"korw k4, k3, k4;" // reset if we store
+		// only write when first list is stepped forward
+		"vpcompressd [%q[result] + %q[count]*4] %{k1%}, zmm3;"
+		"kmovw r9d, k1;"
+
+		"popcnt r9d, r9d;"
+		"add %q[count], r9;"
+
+ 		"jmp 1b;"
+	"2: "
+		// save k4 and handle in tail
+		"kmovw %k[mask], k4;"
+
+		".att_syntax;"
+		: [count]"+r"(count), [i_a]"+r"(i_a), [i_b]"+r"(i_b), [mask]"=r"(mask)
+		: [st_a]"r"(st_a), [st_b]"r"(st_b),
+			[list1]"r"(list1), [list2]"r"(list2),
+			[result]"r"(result)//, [shuffle_mask]"r"(shuffle_mask_avx)
+		: "%rax", "%rbx", "%r8", "%r9",
+			"zmm0","zmm1","zmm2","zmm3","zmm4",
+			/*"ymm5","ymm6","ymm7","ymm8","ymm9",
+			"ymm10","ymm11","ymm12","ymm13","ymm14","ymm15",*/
+			"memory", "cc"
+	);
+	mask = ~mask >> 8;
+	while(mask){
+		if(mask & 1){
+			// skip element in list1, was seen in SIMD code
+			++i_a; mask >>= 1;
+		}else{
+			//FIXME: copy&paste of scalar code
+			if(i_b == size2){
+				while(i_a < size1){
+					if((mask & 1) == 0){
+						result[count++] = list1[i_a];
+					}
+					++i_a; mask >>=1;
+				}
+				return count + (size1 - i_a);
+			}
+			if(list1[i_a] < list2[i_b]){
+				result[count++] = list1[i_a];
+				++i_a; mask >>= 1;
+			}else if(list1[i_a] > list2[i_b]){
+				++i_b;
+			}else{
+				++i_a; mask >>= 1;
+				++i_b;
+			}
+		}
+	}
+	// intersect the tail using scalar intersection
+	count += difference_scalar(
+		list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count
+	);
+#endif
+	return count;
+}
+
+#endif
