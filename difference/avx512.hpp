@@ -6,6 +6,78 @@
 #include "naive.hpp"
 
 
+// set difference with vpconflictd
+//
+// get 256-bit from lists, combine, first operand in upper part
+// vpconflictd -> conflicts marked in upper part as it compares with slots before
+// invert mask, only upper part, compressstore upper part with mask
+size_t difference_vector_avx512_conflict(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
+	size_t count=0, i_a=0, i_b=0;
+#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
+	size_t st_a = (size1 / 8) * 8;
+	size_t st_b = (size2 / 8) * 8;
+
+	__mmask16 kmask=0xffff, kupper=0xff00;
+	__m512i vzero = _mm512_setzero_epi32();
+	while(i_a < st_a && i_b < st_b){
+		__m256i v_a = _mm256_load_si256((__m256i*)&list1[i_a]);
+		__m256i v_b = _mm256_load_si256((__m256i*)&list2[i_b]);
+
+		int32_t a_max = list1[i_a+7];
+		int32_t b_max = list2[i_b+7];
+		i_a += (a_max <= b_max) * 8;
+		i_b += (a_max >= b_max) * 8;
+
+		__mmask16 kwrite = -(uint32_t)(a_max <= b_max); // only write if first list is stepped
+
+		//TODO: vinserti32x8 only available in avx512dq which KNL doesn't have
+		__m512i vpool = _mm512_inserti32x8(_mm512_castsi256_si512(v_b), v_a, 1);
+		__m512i vconflict = _mm512_conflict_epi32(vpool);
+		__mmask16 kconflict = _mm512_mask_cmpeq_epi32_mask(kupper, vconflict, vzero);
+		//TODO: no need to use mask registers everywhere
+		kmask = _mm512_kand(kmask, kconflict);  //kmask &= kconflict;
+		kconflict = _mm512_kand(kmask, kwrite); //kconflict = kmask & kwrite;
+		kmask = _mm512_kor(kmask, kwrite);      //kmask |= kwrite;
+		//
+		_mm512_mask_compressstoreu_epi32(&result[count], kconflict, vpool);
+
+		count += _mm_popcnt_u32(kconflict);
+	}
+	int mask = ~kmask >> 8;
+	while(mask){
+		if(mask & 1){
+			// skip element in list1, was seen in SIMD code
+			++i_a; mask >>= 1;
+		}else{
+			//FIXME: copy&paste of scalar code
+			if(i_b == size2){
+				while(i_a < size1){
+					if((mask & 1) == 0){
+						result[count++] = list1[i_a];
+					}
+					++i_a; mask >>=1;
+				}
+				return count + (size1 - i_a);
+			}
+			if(list1[i_a] < list2[i_b]){
+				result[count++] = list1[i_a];
+				++i_a; mask >>= 1;
+			}else if(list1[i_a] > list2[i_b]){
+				++i_b;
+			}else{
+				++i_a; mask >>= 1;
+				++i_b;
+			}
+		}
+	}
+	// intersect the tail using scalar intersection
+	count += difference_scalar(
+		list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count
+	);
+
+#endif
+	return count;
+}
 
 size_t difference_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;

@@ -3,8 +3,46 @@
 
 #include <immintrin.h>
 
+#include "naive.hpp"
 #include "branchless.hpp"
 
+
+
+// simple intersection with vpconflictd
+//
+// load 256-bit from each list, check for common elements with vpconflictd
+// convert result vector to mask, compressstore
+size_t intersect_vector_avx512_conflict(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
+	size_t count=0, i_a=0, i_b=0;
+#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
+	size_t st_a = (size1 / 8) * 8;
+	size_t st_b = (size2 / 8) * 8;
+
+	__m512i vzero = _mm512_setzero_epi32();
+	while(i_a < st_a && i_b < st_b){
+		__m256i v_a = _mm256_load_si256((__m256i*)&list1[i_a]);
+		__m256i v_b = _mm256_load_si256((__m256i*)&list2[i_b]);
+
+		int32_t a_max = list1[i_a+7];
+		int32_t b_max = list2[i_b+7];
+		i_a += (a_max <= b_max) * 8;
+		i_b += (a_max >= b_max) * 8;
+	
+		//FIXME: vinserti32x8 only available in avx512dq which KNL doesn't have
+		__m512i vpool = _mm512_inserti32x8(_mm512_castsi256_si512(v_a), v_b, 1);
+		__m512i vconflict = _mm512_conflict_epi32(vpool);
+		__mmask16 kconflict = _mm512_cmpneq_epi32_mask(vconflict, vzero);
+
+		_mm512_mask_compressstoreu_epi32(&result[count], kconflict, vpool);
+
+		count += _mm_popcnt_u32(kconflict);
+	}
+	// intersect the tail using scalar intersection
+	count += intersect_scalar(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
+
+#endif
+	return count;
+}
 
 size_t intersect_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;
