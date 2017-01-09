@@ -115,10 +115,14 @@ size_t union_vector_avx512_bitonic(const uint32_t *list1, size_t size1, const ui
 			L = _mm512_permutex2var_epi32(min, vL5Out_L, max);
 			H = _mm512_permutex2var_epi32(min, vL5Out_H, max);
 
-			//FIXME: deduplicate over block end, 1 2 3 ... 15 | 15 16 ...
-			//uint32_t first = _mm512_extracti32x8_epi32(L, 0); //TODO: requires AVX-512DQ 
-			//count -= (endofblock==first);
-			//endofblock = _mm512_extracti32x8_epi32(L, 3); //TODO: requires AVX-512DQ
+			// deduplicate over block end, 1 2 3 ... 15 | 15 16 ...
+			// get lowest and highest value from vector
+			// no extract instruction to get scalar -> compressstore
+			uint32_t tmp[16]; // only uses first 2 elements
+			_mm512_mask_compressstoreu_epi32(tmp, 0x8001, L);
+			uint32_t first = tmp[0];
+			count -= (endofblock==first);
+			endofblock = tmp[1];
 			// deduplicate first 16 elements and compressstore them
 			__m512i vconflict = _mm512_conflict_epi32(L);
 			__mmask16 kconflict = _mm512_cmpeq_epi32_mask(vconflict, _mm512_setzero_epi32());
@@ -252,10 +256,14 @@ size_t union_vector_avx512_bitonic2(const uint32_t *list1, size_t size1, const u
 			L = _mm512_permutex2var_epi32(min, vL5Out_L, max);
 			H = _mm512_permutex2var_epi32(min, vL5Out_H, max);
 
-			//FIXME: deduplicate over block end, 1 2 3 ... 15 | 15 16 ...
-			//uint32_t first = _mm512_extracti32x8_epi32(L, 0); //TODO: requires AVX-512DQ 
-			//count -= (endofblock==first);
-			//endofblock = _mm512_extracti32x8_epi32(L, 3); //TODO: requires AVX-512DQ
+			// deduplicate over block end, 1 2 3 ... 15 | 15 16 ...
+			// get lowest and highest value from vector
+			// no extract instruction to get scalar -> compressstore
+			uint32_t tmp[16]; // only uses first 2 elements
+			_mm512_mask_compressstoreu_epi32(tmp, 0x8001, L);
+			uint32_t first = tmp[0];
+			count -= (endofblock==first);
+			endofblock = tmp[1];
 			// deduplicate first 16 elements and compressstore them
 			__m512i vconflict = _mm512_conflict_epi32(L);
 			__mmask16 kconflict = _mm512_cmpeq_epi32_mask(vconflict, _mm512_setzero_epi32());

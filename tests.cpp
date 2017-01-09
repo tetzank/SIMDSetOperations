@@ -9,11 +9,14 @@
 #include "intersection/sse.hpp"
 #include "intersection/avx.hpp"
 #include "intersection/avx2.hpp"
+#include "intersection/avx512.hpp"
 
 #include "union/sse.hpp"
+#include "union/avx512.hpp"
 
 #include "difference/sse.hpp"
 #include "difference/avx2.hpp"
+#include "difference/avx512.hpp"
 
 
 bool equivalent(const uint32_t *list1, int size1, const uint32_t *list2, int size2){
@@ -154,6 +157,20 @@ int main(){
 			{66,77,88},
 			{0,1,2,3,4,5,6,7, 10,11,12,13,23,27,31,32, 33,36,42,44,47,48,50,51, 52,53,55,60,64, 66,67,68,69, 77,78,79,80, 81,82,83,84, 87,88,89,99},
 			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64, 67,68,69, 78,79,80, 81,82,83,84, 87,89,99}
+		},{
+			"duplicate across vectors of different sizes",
+			{0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15, 16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,128},
+			{1, 2, 4, 7, 9,10,13,14,17,18,19,22,23,27,29,30, 33,36,42,44,48,49,52,55,61,66,69,74,77,88,99,101},
+			{1,  2,  4,  7,  9, 10, 13, 14, 17, 18, 19, 22, 23, 27, 29, 30},
+			{0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 33, 36, 42, 44, 48, 49, 52, 55, 61, 66, 69, 74, 77, 88, 99,101,128},
+			{0,  3,  5,  6,  8, 11, 12, 15, 16, 20, 21, 24, 25, 26, 28,128}
+		},{
+			"one list very small",
+			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64, 66,67,68,69, 77,78,79,80, 81,82,83,84, 87,88,89,99},
+			{88},
+			{88},
+			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64, 66,67,68,69, 77,78,79,80, 81,82,83,84, 87,88,89,99},
+			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64, 66,67,68,69, 77,78,79,80, 81,82,83,84, 87,89,99},
 		}
 	};
 	constexpr int tests_size = sizeof(tests) / sizeof(testcase);
@@ -167,16 +184,28 @@ int main(){
 			FN(intersect_vector_avx),
 #ifdef __AVX2__
 			FN(intersect_vector_avx2),
-			FN(intersect_vector_avx2_asm)
+			FN(intersect_vector_avx2_asm),
+#endif
+#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
+			FN(intersect_vector_avx512_conflict),
+			FN(intersect_vector_avx512_conflict_asm)
 #endif
 		},
 		{
-			FN(union_vector_sse)
+			FN(union_vector_sse),
+#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
+			FN(union_vector_avx512_bitonic),
+			FN(union_vector_avx512_bitonic2)
+#endif
 		},
 		{
 			FN(difference_vector_sse),
 #ifdef __AVX2__
 			FN(difference_vector_avx2),
+#endif
+#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
+			FN(difference_vector_avx512_conflict),
+			FN(difference_vector_avx512_conflict_asm)
 #endif
 		}
 	);
