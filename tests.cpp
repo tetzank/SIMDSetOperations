@@ -204,6 +204,7 @@ int main(){
 			FN(difference_vector_avx2),
 #endif
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
+			//FIXME: broken
 			FN(difference_vector_avx512_conflict),
 			FN(difference_vector_avx512_conflict_asm)
 #endif

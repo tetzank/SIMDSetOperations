@@ -28,9 +28,9 @@ size_t intersect_vector_avx512_conflict(const uint32_t *list1, size_t size1, con
 		i_a += (a_max <= b_max) * 8;
 		i_b += (a_max >= b_max) * 8;
 	
-		//FIXME: vinserti32x8 only available in avx512dq which KNL doesn't have
 		__m512i vpool = _mm512_inserti32x8(_mm512_castsi256_si512(v_a), v_b, 1);
 		__m512i vconflict = _mm512_conflict_epi32(vpool);
+		// _mm512_movepi32_mask doesn't work, use comparison with zero
 		__mmask16 kconflict = _mm512_cmpneq_epi32_mask(vconflict, vzero);
 
 		_mm512_mask_compressstoreu_epi32(&result[count], kconflict, vpool);
@@ -72,7 +72,6 @@ size_t intersect_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1,
 		"lea %q[i_a], [%q[i_a] + rax*8];"
 		"lea %q[i_b], [%q[i_b] + rbx*8];"
 
-		//FIXME: vinserti32x8 only available in avx512dq which KNL doesn't have
 		"vinserti32x8 zmm3, zmm1, ymm2, 1;" // combine to one zmm
 		"vpconflictd zmm4, zmm3;"
 		"vpcmpneqd k1, zmm4, zmm0;"

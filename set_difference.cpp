@@ -10,6 +10,7 @@
 #include "difference/stl.hpp"
 #include "difference/sse.hpp"
 #include "difference/avx2.hpp"
+#include "difference/avx512.hpp"
 
 
 
@@ -81,6 +82,14 @@ int main(void){
 	run(lists, difference_vector_avx2);
 
 	free(shuffle_mask_avx);
+#endif
+
+#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
+	//FIXME: broken
+	//puts("512bit AVX512 vector");
+	//run(lists, difference_vector_avx512_conflict);
+	//puts("512bit AVX512 vector - asm");
+	//run(lists, difference_vector_avx512_conflict_asm);
 #endif
 
 	for(size_t i=0; i<listCount; ++i){

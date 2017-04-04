@@ -5,7 +5,7 @@
 #include "constants.h"
 
 
-int main(int argc, char **argv){
+int main(/*int argc, char **argv*/){
 	uint32_t *numbers = new uint32_t[poolSize];
 	// create simple list
 	for(size_t i=0; i<poolSize; ++i){
@@ -25,7 +25,7 @@ int main(int argc, char **argv){
 
 		// write to file
 		fwrite(list, 4, arraySize, fd);
-		printf("done %3i/%i\n", i+1, listCount);
+		printf("done %3lu/%lu\n", i+1, listCount);
 	}
 	fclose(fd);
 

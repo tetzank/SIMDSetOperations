@@ -10,7 +10,7 @@
 //
 // get 256-bit from lists, combine, first operand in upper part
 // vpconflictd -> conflicts marked in upper part as it compares with slots before
-// invert mask, only upper part, compressstore upper part with mask
+// invert mask (done with cmpeq instead of cmpneq as in intersection), only upper part, compressstore upper part with mask
 size_t difference_vector_avx512_conflict(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
@@ -30,7 +30,6 @@ size_t difference_vector_avx512_conflict(const uint32_t *list1, size_t size1, co
 
 		__mmask16 kwrite = -(uint32_t)(a_max <= b_max); // only write if first list is stepped
 
-		//TODO: vinserti32x8 only available in avx512dq which KNL doesn't have
 		__m512i vpool = _mm512_inserti32x8(_mm512_castsi256_si512(v_b), v_a, 1);
 		__m512i vconflict = _mm512_conflict_epi32(vpool);
 		__mmask16 kconflict = _mm512_mask_cmpeq_epi32_mask(kupper, vconflict, vzero);
@@ -43,7 +42,7 @@ size_t difference_vector_avx512_conflict(const uint32_t *list1, size_t size1, co
 
 		count += _mm_popcnt_u32(kconflict);
 	}
-	int mask = ~kmask >> 8;
+	uint16_t mask = ~((uint16_t)kmask) >> 8;
 	while(mask){
 		if(mask & 1){
 			// skip element in list1, was seen in SIMD code
@@ -84,7 +83,7 @@ size_t difference_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 	size_t st_a = (size1 / 8) * 8;
 	size_t st_b = (size2 / 8) * 8;
-	int mask;
+	uint16_t mask;
 
 	asm(".intel_syntax noprefix;"
 
@@ -116,7 +115,6 @@ size_t difference_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1
 		"neg r9d;"
 		"kmovw k3, r9d;"
 
-		//TODO: vinserti32x8 only available in avx512dq which KNL doesn't have
 		"vinserti32x8 zmm3, zmm2, ymm1, 1;" // combine to one zmm
 		"vpconflictd zmm4, zmm3;" //"vpconflictd zmm4%{k3%}%{z%}, zmm3;"
 		"vpcmpeqd k1%{k2%}, zmm4, zmm0;"
@@ -140,11 +138,9 @@ size_t difference_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1
 		: [count]"+r"(count), [i_a]"+r"(i_a), [i_b]"+r"(i_b), [mask]"=r"(mask)
 		: [st_a]"r"(st_a), [st_b]"r"(st_b),
 			[list1]"r"(list1), [list2]"r"(list2),
-			[result]"r"(result)//, [shuffle_mask]"r"(shuffle_mask_avx)
+			[result]"r"(result)
 		: "%rax", "%rbx", "%r8", "%r9",
 			"zmm0","zmm1","zmm2","zmm3","zmm4",
-			/*"ymm5","ymm6","ymm7","ymm8","ymm9",
-			"ymm10","ymm11","ymm12","ymm13","ymm14","ymm15",*/
 			"memory", "cc"
 	);
 	mask = ~mask >> 8;

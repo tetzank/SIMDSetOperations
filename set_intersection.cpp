@@ -11,6 +11,7 @@
 #include "intersection/sse.hpp"
 #include "intersection/avx.hpp"
 #include "intersection/avx2.hpp"
+#include "intersection/avx512.hpp"
 #include "intersection/galloping.hpp"
 #include "intersection/galloping_sse.hpp"
 #include "intersection/galloping_avx2.hpp"
@@ -107,7 +108,6 @@ int main(){
 		std::chrono::duration<double, std::milli>(t_end-t_start).count()
 	);
 
-#if 1
 	//puts("scalar:");
 	//run(lists, intersect_scalar, intersect_scalar_count, intersect_scalar_index);
 	puts("stl set_intersection:");
@@ -129,19 +129,16 @@ int main(){
 	puts("128bit SSE vector - asm:");
 	run(lists, intersect_vector_sse_asm);
 #endif
-#endif
 
 #ifdef __AVX__
 	prepare_shuffling_dictionary_avx();
 
-#if 1
 	puts("256bit AVX vector: (not AVX2)");
 	run(lists, intersect_vector_avx, intersect_vector_avx_count);
 	puts("256bit AVX vector: (not AVX2) - asm");
 	//FIXME: normal intersection segfaults
 	//run(lists, intersect_vector_avx_asm, intersect_vector_avx_asm_count);
 	run(lists, nullptr, intersect_vector_avx_asm_count); 
-#endif
 
 #ifdef __AVX2__
 	puts("256bit AVX2 vector");
@@ -153,7 +150,14 @@ int main(){
 	free(shuffle_mask_avx);
 #endif
 
-#if 1
+#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
+	puts("512bit AVX512 vector");
+	run(lists, intersect_vector_avx512_conflict);
+	puts("512bit AVX512 vector - asm");
+	run(lists, intersect_vector_avx512_conflict_asm);
+#endif
+
+#if 0
 	puts("v1");
 	run(lists, v1);
 	puts("v3");
