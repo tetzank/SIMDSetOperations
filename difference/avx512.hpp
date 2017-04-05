@@ -42,7 +42,7 @@ size_t difference_vector_avx512_conflict(const uint32_t *list1, size_t size1, co
 
 		count += _mm_popcnt_u32(kconflict);
 	}
-	uint16_t mask = ~((uint16_t)kmask) >> 8;
+	unsigned mask = (~kmask & 0xffff) >> 8;
 	while(mask){
 		if(mask & 1){
 			// skip element in list1, was seen in SIMD code
@@ -83,11 +83,10 @@ size_t difference_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 	size_t st_a = (size1 / 8) * 8;
 	size_t st_b = (size2 / 8) * 8;
-	uint16_t mask;
+	unsigned mask;
 
 	asm(".intel_syntax noprefix;"
 
-		//"mov eax, 65280;"
 		"mov eax, 0xff00;"
 		"kmovw k2, eax;"
 		"xor rax, rax;"
@@ -143,7 +142,7 @@ size_t difference_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1
 			"zmm0","zmm1","zmm2","zmm3","zmm4",
 			"memory", "cc"
 	);
-	mask = ~mask >> 8;
+	mask = (~mask & 0xffff) >> 8;
 	while(mask){
 		if(mask & 1){
 			// skip element in list1, was seen in SIMD code
