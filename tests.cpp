@@ -18,6 +18,9 @@
 #include "difference/avx2.hpp"
 #include "difference/avx512.hpp"
 
+#include "merge/naive.hpp"
+#include "merge/stl.hpp"
+
 
 bool equivalent(const uint32_t *list1, int size1, const uint32_t *list2, int size2){
 	if(size1 != size2) return false;
@@ -31,8 +34,8 @@ struct testcase{
 	const char *name;
 	uint32_t *list1, *list2;
 	size_t size1, size2;
-	uint32_t *res_intersection, *res_union, *res_difference;
-	size_t size_intersection, size_union, size_difference;
+	uint32_t *res_intersection, *res_union, *res_difference, *res_merge;
+	size_t size_intersection, size_union, size_difference, size_merge;
 
 	testcase(
 		const char *name,
@@ -40,7 +43,8 @@ struct testcase{
 		std::initializer_list<uint32_t> list2,
 		std::initializer_list<uint32_t> res_intersection,
 		std::initializer_list<uint32_t> res_union,
-		std::initializer_list<uint32_t> res_difference
+		std::initializer_list<uint32_t> res_difference,
+		std::initializer_list<uint32_t> res_merge
 	) : name(name)
 	{
 		size1 = list1.size();
@@ -58,6 +62,9 @@ struct testcase{
 		size_difference = res_difference.size();
 		this->res_difference = (uint32_t*)aligned_alloc(64, size_difference*sizeof(uint32_t));
 		std::copy(res_difference.begin(), res_difference.end(), this->res_difference);
+		size_merge = res_merge.size();
+		this->res_merge = (uint32_t*)aligned_alloc(64, size_merge*sizeof(uint32_t));
+		std::copy(res_merge.begin(), res_merge.end(), this->res_merge);
 	}
 	// making sure nobody even tries as it would lead to use-after-free
 	testcase(const testcase&) = delete;
@@ -68,6 +75,7 @@ struct testcase{
 		free(res_intersection);
 		free(res_union);
 		free(res_difference);
+		free(res_merge);
 	}
 };
 
@@ -76,7 +84,8 @@ void run(
 	const testcase *tests, size_t tests_size,
 	std::vector<std::pair<const char*,func_t>> f_intersection,
 	std::vector<std::pair<const char*,func_t>> f_union,
-	std::vector<std::pair<const char*,func_t>> f_difference
+	std::vector<std::pair<const char*,func_t>> f_difference,
+	std::vector<std::pair<const char*,func_t>> f_merge
 ){
 	//for(const auto &t : tests){
 	for(size_t i=0; i<tests_size; ++i){
@@ -127,6 +136,21 @@ void run(
 				printf("\n");
 			}
 		}
+		for(const auto &f : f_merge){
+			size_t size_res = f.second(t.list1, t.size1, t.list2, t.size2, res);
+			if(!equivalent(res, size_res, t.res_merge, t.size_merge)){
+				//TODO
+				printf("test \"%s\", merge \"%s\" wrong\nlist1 : ", t.name, f.first);
+				for(size_t i=0; i<t.size1; ++i) printf("%i, ", t.list1[i]);
+				printf("\nlist2 : ");
+				for(size_t i=0; i<t.size2; ++i) printf("%i, ", t.list2[i]);
+				printf("\nresult: ");
+				for(size_t i=0; i<size_res; ++i) printf("%i, ", res[i]);
+				printf("\nexpect: ");
+				for(size_t i=0; i<t.size_merge; ++i) printf("%i, ", t.res_merge[i]);
+				printf("\n");
+			}
+		}
 		free(res);
 	}
 }
@@ -142,28 +166,32 @@ int main(){
 			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64}, // list2
 			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64}, // intersection result
 			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64}, // union result
-			{}  // difference result
+			{},                                               // difference result
+			{0,0,2,2,4,4,7,7, 11,11,13,13,23,23,32,32, 33,33,42,42,44,44,48,48, 53,53,55,55,60,60,64,64}, // merge result
 		},{
 			"completely different lists",
 			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64},
 			{1,3,5,6, 10,12,27,31, 36,47,50,51, 52,66,77,88},
 			{},
 			{0,1,2,3,4,5,6,7, 10,11,12,13,23,27,31,32, 33,36,42,44,47,48,50,51, 52,53,55,60,64,66,77,88},
-			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64}
+			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64},
+			{0,1,2,3,4,5,6,7, 10,11,12,13,23,27,31,32, 33,36,42,44,47,48,50,51, 52,53,55,60,64,66,77,88},
 		},{
 			"no match in first",
 			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64, 66,67,68,69, 77,78,79,80, 81,82,83,84, 87,88,89,99},
 			{1,3,5,6, 10,12,27,31, 36,47,50,51, 52,66,77,88},
 			{66,77,88},
 			{0,1,2,3,4,5,6,7, 10,11,12,13,23,27,31,32, 33,36,42,44,47,48,50,51, 52,53,55,60,64, 66,67,68,69, 77,78,79,80, 81,82,83,84, 87,88,89,99},
-			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64, 67,68,69, 78,79,80, 81,82,83,84, 87,89,99}
+			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64, 67,68,69, 78,79,80, 81,82,83,84, 87,89,99},
+			{0,1,2,3,4,5,6,7, 10,11,12,13,23,27,31,32, 33,36,42,44,47,48,50,51, 52,53,55,60,64,66,66,67,68,69,77,77,78,79,80,81,82,83,84,87,88,88,89,99}
 		},{
 			"duplicate across vectors of different sizes",
 			{0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15, 16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,128},
 			{1, 2, 4, 7, 9,10,13,14,17,18,19,22,23,27,29,30, 33,36,42,44,48,49,52,55,61,66,69,74,77,88,99,101},
 			{1,  2,  4,  7,  9, 10, 13, 14, 17, 18, 19, 22, 23, 27, 29, 30},
 			{0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 33, 36, 42, 44, 48, 49, 52, 55, 61, 66, 69, 74, 77, 88, 99,101,128},
-			{0,  3,  5,  6,  8, 11, 12, 15, 16, 20, 21, 24, 25, 26, 28,128}
+			{0,  3,  5,  6,  8, 11, 12, 15, 16, 20, 21, 24, 25, 26, 28,128},
+			{0,1,1,2,2,3,4,4,5,6,7,7,8,9,9,10,10,11,12,13,13,14,14,15, 16,17,17,18,18,19,19,20,21,22,22,23,23,24,25,26,27,27,28,29,29,30,30, 33,36,42,44,48,49,52,55,61,66,69,74,77,88,99,101, 128}
 		},{
 			"one list very small",
 			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64, 66,67,68,69, 77,78,79,80, 81,82,83,84, 87,88,89,99},
@@ -171,6 +199,7 @@ int main(){
 			{88},
 			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64, 66,67,68,69, 77,78,79,80, 81,82,83,84, 87,88,89,99},
 			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64, 66,67,68,69, 77,78,79,80, 81,82,83,84, 87,89,99},
+			{0,2,4,7, 11,13,23,32, 33,42,44,48, 53,55,60,64, 66,67,68,69, 77,78,79,80, 81,82,83,84, 87,88,88,89,99},
 		}
 	};
 	constexpr int tests_size = sizeof(tests) / sizeof(testcase);
@@ -204,10 +233,13 @@ int main(){
 			FN(difference_vector_avx2),
 #endif
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
-			//FIXME: broken
 			FN(difference_vector_avx512_conflict),
 			FN(difference_vector_avx512_conflict_asm)
 #endif
+		},
+		{
+			FN(merge_scalar),
+			FN(merge_scalar_stl),
 		}
 	);
 

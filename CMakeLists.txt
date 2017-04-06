@@ -38,6 +38,9 @@ set_target_properties(set_union PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 add_executable(set_difference set_difference.cpp)
 set_target_properties(set_difference PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 
+add_executable(merge merge.cpp)
+set_target_properties(merge PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
+
 add_executable(tests tests.cpp)
 set_target_properties(set_difference PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 
