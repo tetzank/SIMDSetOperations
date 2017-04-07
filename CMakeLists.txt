@@ -42,7 +42,7 @@ add_executable(merge merge.cpp)
 set_target_properties(merge PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 
 add_executable(tests tests.cpp)
-set_target_properties(set_difference PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
+set_target_properties(tests PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 
 if(${GBENCHMARK_FOUND})
 	add_definitions(${GBENCHMARK_INCLUDE_DIR})

@@ -6,14 +6,22 @@
 
 #include "shuffle_dictionary.hpp"
 
+#include "intersection/naive.hpp"
+#include "intersection/stl.hpp"
+#include "intersection/branchless.hpp"
 #include "intersection/sse.hpp"
 #include "intersection/avx.hpp"
 #include "intersection/avx2.hpp"
 #include "intersection/avx512.hpp"
 
+#include "union/naive.hpp"
+#include "union/stl.hpp"
+#include "union/branchless.hpp"
 #include "union/sse.hpp"
 #include "union/avx512.hpp"
 
+#include "difference/naive.hpp"
+#include "difference/stl.hpp"
 #include "difference/sse.hpp"
 #include "difference/avx2.hpp"
 #include "difference/avx512.hpp"
@@ -208,6 +216,10 @@ int main(){
 	run(
 		tests, tests_size,
 		{
+			FN(intersect_scalar),
+			FN(intersect_scalar_stl),
+			FN(intersect_scalar_branchless_c),
+			FN(intersect_scalar_branchless),
 			FN(intersect_vector_sse),
 			FN(intersect_vector_sse_asm),
 			FN(intersect_vector_avx),
@@ -221,6 +233,9 @@ int main(){
 #endif
 		},
 		{
+			FN(union_scalar),
+			FN(union_scalar_stl),
+			FN(union_scalar_branchless),
 			FN(union_vector_sse),
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 			FN(union_vector_avx512_bitonic),
@@ -228,6 +243,8 @@ int main(){
 #endif
 		},
 		{
+			FN(difference_scalar),
+			FN(difference_scalar_stl),
 			FN(difference_vector_sse),
 #ifdef __AVX2__
 			FN(difference_vector_avx2),
