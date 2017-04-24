@@ -70,18 +70,13 @@ int main(void){
 #endif
 
 #ifdef __SSE2__
-	prepare_shuffling_dictionary();
 	puts("128bit SSE vector:");
 	run(lists, difference_vector_sse);
 #endif
 
 #ifdef __AVX2__
-	prepare_shuffling_dictionary_avx();
-
 	puts("256bit AVX2 vector");
 	run(lists, difference_vector_avx2);
-
-	free(shuffle_mask_avx);
 #endif
 
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)

@@ -166,9 +166,6 @@ void run(
 }
 
 int main(){
-	prepare_shuffling_dictionary();
-	prepare_shuffling_dictionary_avx();
-
 	const testcase tests[] = {
 		{
 			"equal lists",
@@ -274,6 +271,5 @@ int main(){
 		}
 	);
 
-	free(shuffle_mask_avx);
 	return 0;
 }

@@ -5,42 +5,55 @@
 #include <immintrin.h>
 
 
-// a simple implementation, we don't care about performance here
-static __m128i shuffle_mask[16]; // precomputed dictionary
-void prepare_shuffling_dictionary() {
-	for(int i = 0; i < 16; i++) {
-		int counter = 0;
-		char permutation[16];
-		memset(permutation, 0xFF, sizeof(permutation));
-		for(char b = 0; b < 4; b++) {
-			if(i & (1 << b)) { // get bit b from i
-				permutation[counter++] = 4*b;
-				permutation[counter++] = 4*b + 1;
-				permutation[counter++] = 4*b + 2;
-				permutation[counter++] = 4*b + 3;
+// C++17 std::array has constexpr operator[], use our own for now
+template<typename T, int N>
+struct constarray{
+	T elems[N];
+	constexpr       T &operator[](size_t i)       { return elems[i]; }
+	constexpr const T &operator[](size_t i) const { return elems[i]; }
+};
+
+static constexpr constarray<uint8_t,16*16> prepare_shuffling_dictionary(){
+	constarray<uint8_t,16*16> arr = {0xff};
+	int size=0;
+	for(int i=0; i<16; ++i){
+		int counter=0;
+		for(int j=0; j<4; ++j){
+			if(i & (1 << j)){
+				arr[size+counter*4  ] = 4*j;
+				arr[size+counter*4+1] = 4*j + 1;
+				arr[size+counter*4+2] = 4*j + 2;
+				arr[size+counter*4+3] = 4*j + 3;
+				++counter;
 			}
 		}
-		__m128i mask = _mm_loadu_si128((const __m128i*)permutation);
-		shuffle_mask[i] = mask;
+		size += 16;
 	}
+	return arr;
 }
+static const constexpr auto shuffle_mask_arr = prepare_shuffling_dictionary();
+static const constexpr __m128i *shuffle_mask = (__m128i*)shuffle_mask_arr.elems;
 
-static uint32_t *shuffle_mask_avx;
-void prepare_shuffling_dictionary_avx(){
-	shuffle_mask_avx = (uint32_t*)aligned_alloc(32, 256*8*sizeof(uint32_t));
-	for(uint32_t i=0; i<256; ++i){
+
+static constexpr constarray<uint32_t,256*8> prepare_shuffling_dictionary_avx(){
+	constarray<uint32_t,256*8> arr = {};
+	for(int i=0; i<256; ++i){
 		int count=0, rest=7;
 		for(int b=0; b<8; ++b){
 			if(i & (1 << b)){
 				// n index at pos p - move nth element to pos p
-				shuffle_mask_avx[i*8 + count] = b; // move all set bits to beginning
+				arr[i*8 + count] = b; // move all set bits to beginning
 				++count;
 			}else{
-				shuffle_mask_avx[i*8 + rest] = b; // move rest at the end
+				arr[i*8 + rest] = b; // move rest at the end
 				--rest;
 			}
 		}
 	}
+	return arr;
 }
+static const constexpr auto shuffle_mask_avx_arr = prepare_shuffling_dictionary_avx();
+static const constexpr uint32_t *shuffle_mask_avx = shuffle_mask_avx_arr.elems;
+
 
 #endif

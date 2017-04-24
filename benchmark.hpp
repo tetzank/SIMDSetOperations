@@ -30,9 +30,6 @@ static void BM_benchmark(benchmark::State &state){
 	delete[] numberx;
 	delete[] numbery;
 
-	prepare_shuffling_dictionary();     //FIXME: only needed for SSE
-	prepare_shuffling_dictionary_avx(); //FIXME: only needed for AVX(2)
-
 	uint32_t *result = (uint32_t*)aligned_alloc(64, std::max(state.range_x(), state.range_y()) * sizeof(uint32_t));
 	if(!result){ puts("bad alloc"); return; }
 	while(state.KeepRunning()){
@@ -41,8 +38,6 @@ static void BM_benchmark(benchmark::State &state){
 		);
 	}
 	free(result);
-
-	free(shuffle_mask_avx);
 
 	free(listx);
 	free(listy);

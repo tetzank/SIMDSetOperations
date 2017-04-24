@@ -123,7 +123,6 @@ int main(){
 	run(lists, intersect_scalar_branchless, intersect_scalar_branchless_count);
 
 #ifdef __SSE2__
-	prepare_shuffling_dictionary();
 	puts("128bit SSE vector:");
 	run(lists, intersect_vector_sse, intersect_vector_sse_count);
 	puts("128bit SSE vector - asm:");
@@ -131,7 +130,6 @@ int main(){
 #endif
 
 #ifdef __AVX__
-	prepare_shuffling_dictionary_avx();
 
 	puts("256bit AVX vector: (not AVX2)");
 	run(lists, intersect_vector_avx, intersect_vector_avx_count);
@@ -147,7 +145,6 @@ int main(){
 	run(lists, intersect_vector_avx2_asm, intersect_vector_avx2_asm_count);
 #endif
 
-	free(shuffle_mask_avx);
 #endif
 
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)

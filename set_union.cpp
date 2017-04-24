@@ -60,7 +60,6 @@ int main(){
 	run(lists, union_scalar_branchless);
 
 #ifdef __SSE2__
-	prepare_shuffling_dictionary();
 	puts("SSE union:");
 	run(lists, union_vector_sse);
 #endif

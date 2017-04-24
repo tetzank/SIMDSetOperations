@@ -41,7 +41,6 @@ size_t intersect_vector_avx2(const uint32_t *list1, size_t size1, const uint32_t
 		__m256 rot7 = _mm256_permute_ps(rot4, cyclic_shift2);
 		__m256i cmp_mask8 = _mm256_cmpeq_epi32(v_a, (__m256i)rot7);
 
-		// AVX2: _mm256_or_si256
 		__m256i cmp_mask = _mm256_or_si256(
 			_mm256_or_si256(
 				_mm256_or_si256(cmp_mask1, cmp_mask2),
