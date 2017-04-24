@@ -7,6 +7,30 @@
 
 #include "branchless.hpp"
 
+#define BLEND 1
+#if BLEND
+static constexpr constarray<uint8_t,16*16> prepare_shuffle(){
+	constarray<uint8_t,16*16> arr = {0xff};
+	int size=0;
+	for(int i=0; i<16; ++i){
+		int counter=0;
+		for(int j=0; j<4; ++j){
+			if((i & (1 << j)) == 0){
+				arr[size+counter*4  ] = 4*j;
+				arr[size+counter*4+1] = 4*j + 1;
+				arr[size+counter*4+2] = 4*j + 2;
+				arr[size+counter*4+3] = 4*j + 3;
+				++counter;
+			}
+		}
+		size += 16;
+	}
+	return arr;
+}
+static const constexpr auto shuffle_arr = prepare_shuffle();
+static const constexpr __m128i *shuffle = (__m128i*)shuffle_arr.elems;
+#endif
+
 
 size_t union_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count = 0;
@@ -15,7 +39,12 @@ size_t union_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *lis
 	// trim lengths to be a multiple of 4
 	size_t st_a = ((size1-1) / 4) * 4;
 	size_t st_b = ((size2-1) / 4) * 4;
-	uint32_t endofblock=~0, a_nextfirst, b_nextfirst;
+	uint32_t a_nextfirst, b_nextfirst;
+#if !BLEND
+	uint32_t endofblock=~0;
+#else
+	__m128i old = _mm_set1_epi32(-1); //FIXME: hardcoded, use something related to the lists
+#endif
 	uint32_t maxtail[4];
 
 	if(i_a < st_a && i_b < st_b){
@@ -41,6 +70,7 @@ size_t union_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *lis
 
 			__m128i tmp4 = _mm_shuffle_epi32(step4max, cyclic_shift);
 
+#if !BLEND
 			// deduplicate over block end, 1 2 3 4 | 4 5 6 7
 			uint32_t first = _mm_extract_epi32(step4min, 0);
 			count -= (endofblock==first);
@@ -56,6 +86,22 @@ size_t union_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *lis
 			__m128i p = _mm_shuffle_epi8(step4min, shuffle_mask[mask]);
 			_mm_storeu_si128((__m128i*)&result[count], p);
 			count += _mm_popcnt_u32(mask); // a number of elements is a weight of the mask
+#else
+			// deduplicate over block end, 1 2 3 4 | 4 5 6 7
+			// remember previous minimum vector, only use highest value
+			__m128i recon = _mm_blend_epi32(old, step4min, 0b0111);
+			// in register deduplicate, removes duplicates in one vector
+			// and across as we moved in the highest previous value
+			__m128i dedup = _mm_shuffle_epi32(recon, cyclic_shift);
+			// compress shuffle like in intersect but flipped, use flipped lut
+			// convert the 128-bit mask to the 4-bit mask
+			int32_t mask = _mm_movemask_ps((__m128)_mm_cmpeq_epi32(dedup, step4min));
+			__m128i p = _mm_shuffle_epi8(step4min, shuffle[mask]);
+			_mm_storeu_si128((__m128i*)&result[count], p);
+			count += 4 - _mm_popcnt_u32(mask); // a number of elements is a weight of the mask
+			// remember minimum for next iteration
+			old = step4min;
+#endif
 
 			v_a = tmp4;
 			// compare first element of the next block in both lists
@@ -90,6 +136,9 @@ size_t union_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *lis
 		// v_a contains max vector from last comparison, v_b contains new, might be out of bounds
 		// indices i_a and i_b correct, still need to handle v_a
 		_mm_storeu_si128((__m128i*)maxtail, v_a);
+#if BLEND
+		uint32_t endofblock = _mm_extract_epi32(old, 3);
+#endif
 
 		size_t mti=0;
 		size_t mtsize = std::unique(maxtail, maxtail+4) - maxtail; // deduplicate tail
