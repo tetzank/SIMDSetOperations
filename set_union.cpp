@@ -12,7 +12,7 @@
 
 
 void run(uint32_t **lists, size_t (*func)(const uint32_t*,size_t,const uint32_t*,size_t,uint32_t*)){
-	uint32_t *union_list = (uint32_t*)aligned_alloc(32, 2*arraySize*sizeof(uint32_t));
+	uint32_t *union_list = (uint32_t*)aligned_alloc(64, 2*arraySize*sizeof(uint32_t));
 	auto t_start = std::chrono::high_resolution_clock::now();
 	size_t union_count=0;
 	for(size_t i=0; i<listCount; ++i){
@@ -38,7 +38,7 @@ int main(){
 	}
 	uint32_t **lists = new uint32_t*[listCount];
 	for(size_t i=0; i<listCount; ++i){
-		lists[i] = (uint32_t*)aligned_alloc(32, arraySize*sizeof(uint32_t));
+		lists[i] = (uint32_t*)aligned_alloc(64, arraySize*sizeof(uint32_t));
 		fread(lists[i], 4, arraySize, fd);
 	}
 	fclose(fd);

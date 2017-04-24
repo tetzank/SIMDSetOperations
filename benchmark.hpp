@@ -18,9 +18,9 @@ static void BM_benchmark(benchmark::State &state){
 	std::shuffle(numberx, numberx+state.range_x(), rng);
 	std::shuffle(numbery, numbery+state.range_y(), rng);
 
-	uint32_t *listx = (uint32_t*)aligned_alloc(32, state.range_x()*sizeof(uint32_t));
+	uint32_t *listx = (uint32_t*)aligned_alloc(64, state.range_x()*sizeof(uint32_t));
 	if(!listx){ puts("bad alloc"); return; }
-	uint32_t *listy = (uint32_t*)aligned_alloc(32, state.range_y()*sizeof(uint32_t));
+	uint32_t *listy = (uint32_t*)aligned_alloc(64, state.range_y()*sizeof(uint32_t));
 	if(!listy){ puts("bad alloc"); return; }
 	std::copy(numberx, numberx+state.range_x(), listx);
 	std::sort(listx, listx+state.range_x());
@@ -33,7 +33,7 @@ static void BM_benchmark(benchmark::State &state){
 	prepare_shuffling_dictionary();     //FIXME: only needed for SSE
 	prepare_shuffling_dictionary_avx(); //FIXME: only needed for AVX(2)
 
-	uint32_t *result = (uint32_t*)aligned_alloc(32, std::max(state.range_x(), state.range_y()) * sizeof(uint32_t));
+	uint32_t *result = (uint32_t*)aligned_alloc(64, std::max(state.range_x(), state.range_y()) * sizeof(uint32_t));
 	if(!result){ puts("bad alloc"); return; }
 	while(state.KeepRunning()){
 		benchmark::DoNotOptimize(

@@ -22,7 +22,7 @@ void run(uint32_t **lists,
 		size_t elements=0;
 		for(size_t repeat=0; repeat<repeatCount; ++repeat){
 			for(size_t i=0; i<listCount; ++i){
-				uint32_t *new_list =  (uint32_t*)aligned_alloc(32, arraySize*sizeof(uint32_t));
+				uint32_t *new_list =  (uint32_t*)aligned_alloc(64, arraySize*sizeof(uint32_t));
 				for(size_t j=i+1; j<listCount; ++j){
 					elements += func(
 						lists[i], arraySize,
@@ -51,7 +51,7 @@ int main(void){
 	}
 	uint32_t **lists = new uint32_t*[listCount];
 	for(size_t i=0; i<listCount; ++i){
-		lists[i] = (uint32_t*)aligned_alloc(32, arraySize*sizeof(uint32_t));
+		lists[i] = (uint32_t*)aligned_alloc(64, arraySize*sizeof(uint32_t));
 		fread(lists[i], 4, arraySize, fd);
 	}
 	fclose(fd);
