@@ -5,6 +5,8 @@
 
 #include "merge/naive.hpp"
 #include "merge/stl.hpp"
+#include "merge/sse.hpp"
+#include "merge/avx512.hpp"
 
 
 void run(uint32_t **lists, size_t (*func)(const uint32_t*,size_t,const uint32_t*,size_t,uint32_t*)){
@@ -47,6 +49,16 @@ int main(){
 	run(lists, merge_scalar);
 	puts("stl merge:");
 	run(lists, merge_scalar_stl);
+
+#ifdef __SSE2__
+	puts("SSE merge:");
+	run(lists, merge_vector_sse);
+#endif
+
+#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
+	puts("512bit AVX512 - 2");
+	run(lists, merge_vector_avx512_bitonic2);
+#endif
 
 	// cleanup
 	for(size_t i=0; i<listCount; ++i){
