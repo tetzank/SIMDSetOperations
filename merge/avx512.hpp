@@ -80,7 +80,7 @@ size_t merge_vector_avx512_bitonic2(const uint32_t *list1, size_t size1, const u
 			// keep maximum and do the same steps as above with next block
 			// next block from one list, which first element in new block is smaller
 			i_a += (a_nextfirst <= b_nextfirst) * 16;
-			i_b += (a_nextfirst >= b_nextfirst) * 16;
+			i_b += (a_nextfirst > b_nextfirst) * 16;
 			size_t index = (a_nextfirst <= b_nextfirst)? i_a: i_b;
 			const uint32_t *base = (a_nextfirst <= b_nextfirst)? list1: list2;
 			v_b = _mm512_load_epi32(&base[index]);
