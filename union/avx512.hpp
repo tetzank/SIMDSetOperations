@@ -58,6 +58,8 @@ alignas(64) static uint32_t shuffles2[][16]={
 #undef H
 
 
+#define BLEND 1
+
 size_t union_vector_avx512_bitonic(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count = 0;
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
@@ -66,7 +68,12 @@ size_t union_vector_avx512_bitonic(const uint32_t *list1, size_t size1, const ui
 	size_t st_a = ((size1-1) / 16) * 16;
 	size_t st_b = ((size2-1) / 16) * 16;
 	// assumes ~0 -> all bits set is not used
-	uint32_t endofblock=~0, a_nextfirst, b_nextfirst;
+	uint32_t a_nextfirst, b_nextfirst;
+#if !BLEND
+	uint32_t endofblock=~0;
+#else
+	__m512i old = _mm512_set1_epi32(-1); //FIXME: hardcoded, use something related to the lists
+#endif
 	alignas(64) uint32_t maxtail[16];
 
 	if(i_a < st_a && i_b < st_b){
@@ -115,6 +122,7 @@ size_t union_vector_avx512_bitonic(const uint32_t *list1, size_t size1, const ui
 			L = _mm512_permutex2var_epi32(min, vL5Out_L, max);
 			H = _mm512_permutex2var_epi32(min, vL5Out_H, max);
 
+#if !BLEND
 			// deduplicate over block end, 1 2 3 ... 15 | 15 16 ...
 			// get lowest and highest value from vector
 			// no extract instruction to get scalar -> compressstore
@@ -128,6 +136,16 @@ size_t union_vector_avx512_bitonic(const uint32_t *list1, size_t size1, const ui
 			__mmask16 kconflict = _mm512_cmpeq_epi32_mask(vconflict, _mm512_setzero_epi32());
 			_mm512_mask_compressstoreu_epi32(&result[count], kconflict, L);
 			count += _mm_popcnt_u32(kconflict); // number of elements written
+#else
+			__m512i recon = _mm512_mask_blend_epi32(0x7fff, old, L);
+			const __m512i circlic_shuffle = _mm512_set_epi32(14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 15);
+			__m512i dedup = _mm512_permutexvar_epi32(circlic_shuffle, recon);
+			__mmask16 kmask = _mm512_cmpneq_epi32_mask(dedup, L);
+			_mm512_mask_compressstoreu_epi32(&result[count], kmask, L);
+			count += _mm_popcnt_u32(kmask); // number of elements written
+			// remember minimum for next iteration
+			old = L;
+#endif
 
 			v_a = H;
 			// compare first element of the next block in both lists
@@ -146,6 +164,9 @@ size_t union_vector_avx512_bitonic(const uint32_t *list1, size_t size1, const ui
 		// v_a contains max vector from last comparison, v_b contains new, might be out of bounds
 		// indices i_a and i_b correct, still need to handle v_a
 		_mm512_store_epi32(maxtail, _mm512_permutexvar_epi32(vreverse, v_a));
+#if BLEND
+		uint32_t endofblock = _mm_extract_epi32(_mm512_extracti32x4_epi32(old, 3), 3);
+#endif
 
 		size_t mti=0;
 		size_t mtsize = std::unique(maxtail, maxtail+16) - maxtail; // deduplicate tail
@@ -205,7 +226,12 @@ size_t union_vector_avx512_bitonic2(const uint32_t *list1, size_t size1, const u
 	size_t st_a = ((size1-1) / 16) * 16;
 	size_t st_b = ((size2-1) / 16) * 16;
 	// assumes ~0 -> all bits set is not used
-	uint32_t endofblock=~0, a_nextfirst, b_nextfirst;
+	uint32_t a_nextfirst, b_nextfirst;
+#if !BLEND
+	uint32_t endofblock=~0;
+#else
+	__m512i old = _mm512_set1_epi32(-1); //FIXME: hardcoded, use something related to the lists
+#endif
 	alignas(64) uint32_t maxtail[16];
 
 	if(i_a < st_a && i_b < st_b){
@@ -256,6 +282,7 @@ size_t union_vector_avx512_bitonic2(const uint32_t *list1, size_t size1, const u
 			L = _mm512_permutex2var_epi32(min, vL5Out_L, max);
 			H = _mm512_permutex2var_epi32(min, vL5Out_H, max);
 
+#if !BLEND
 			// deduplicate over block end, 1 2 3 ... 15 | 15 16 ...
 			// get lowest and highest value from vector
 			// no extract instruction to get scalar -> compressstore
@@ -269,6 +296,16 @@ size_t union_vector_avx512_bitonic2(const uint32_t *list1, size_t size1, const u
 			__mmask16 kconflict = _mm512_cmpeq_epi32_mask(vconflict, _mm512_setzero_epi32());
 			_mm512_mask_compressstoreu_epi32(&result[count], kconflict, L);
 			count += _mm_popcnt_u32(kconflict); // number of elements written
+#else
+			__m512i recon = _mm512_mask_blend_epi32(0x7fff, old, L);
+			const __m512i circlic_shuffle = _mm512_set_epi32(14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 15);
+			__m512i dedup = _mm512_permutexvar_epi32(circlic_shuffle, recon);
+			__mmask16 kmask = _mm512_cmpneq_epi32_mask(dedup, L);
+			_mm512_mask_compressstoreu_epi32(&result[count], kmask, L);
+			count += _mm_popcnt_u32(kmask); // number of elements written
+			// remember minimum for next iteration
+			old = L;
+#endif
 
 			v_a = H;
 			// compare first element of the next block in both lists
@@ -287,6 +324,9 @@ size_t union_vector_avx512_bitonic2(const uint32_t *list1, size_t size1, const u
 		// v_a contains max vector from last comparison, v_b contains new, might be out of bounds
 		// indices i_a and i_b correct, still need to handle v_a
 		_mm512_store_epi32(maxtail, _mm512_permutexvar_epi32(vreverse, v_a));
+#if BLEND
+		uint32_t endofblock = _mm_extract_epi32(_mm512_extracti32x4_epi32(old, 3), 3);
+#endif
 
 		size_t mti=0;
 		size_t mtsize = std::unique(maxtail, maxtail+16) - maxtail; // deduplicate tail
@@ -336,5 +376,7 @@ size_t union_vector_avx512_bitonic2(const uint32_t *list1, size_t size1, const u
 #endif
 	return count;
 }
+
+#undef BLEND
 
 #endif

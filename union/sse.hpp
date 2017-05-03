@@ -191,4 +191,6 @@ size_t union_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *lis
 	return count;
 }
 
+#undef BLEND
+
 #endif
