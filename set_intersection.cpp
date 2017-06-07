@@ -148,10 +148,14 @@ int main(){
 #endif
 
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
-	puts("512bit AVX512 vector");
+	puts("512bit AVX512 vector using vpconflictd");
 	run(lists, intersect_vector_avx512_conflict);
-	puts("512bit AVX512 vector - asm");
+	puts("512bit AVX512 vector using vpconflictd - asm");
 	run(lists, intersect_vector_avx512_conflict_asm);
+	puts("512bit AVX512 vector using shuffling");
+	run(lists, intersect_vector_avx512);
+	puts("512bit AVX512 vector using shuffling - asm");
+	run(lists, intersect_vector_avx512_asm);
 #endif
 
 #if 0

@@ -254,7 +254,9 @@ int main(){
 #endif
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 			FN(intersect_vector_avx512_conflict),
-			FN(intersect_vector_avx512_conflict_asm)
+			FN(intersect_vector_avx512_conflict_asm),
+			FN(intersect_vector_avx512),
+			FN(intersect_vector_avx512_asm),
 #endif
 		},
 		{
