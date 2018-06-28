@@ -194,8 +194,8 @@ size_t intersect_vector_avx_asm(const uint32_t *list1, size_t size1, const uint3
 
 		"mov r8d, [%q[list1] + %q[i_a]*4 + 28];" //int32_t a_max = list1[i_a+7];
 		"cmp r8d, [%q[list2] + %q[i_b]*4 + 28];"
-		"setle al;"
-		"setge bl;"
+		"setbe al;"
+		"setae bl;"
 		"lea %q[i_a], [%q[i_a] + rax*8];"
 		"lea %q[i_b], [%q[i_b] + rbx*8];"
 
@@ -291,8 +291,8 @@ size_t intersect_vector_avx_asm_count(const uint32_t *list1, size_t size1, const
 
 		"mov r8d, [%q[list1] + %q[i_a]*4 + 28];" //int32_t a_max = list1[i_a+7];
 		"cmp r8d, [%q[list2] + %q[i_b]*4 + 28];"
-		"setle al;"
-		"setge bl;"
+		"setbe al;"
+		"setae bl;"
 		"lea %q[i_a], [%q[i_a] + rax*8];"
 		"lea %q[i_b], [%q[i_b] + rbx*8];"
 

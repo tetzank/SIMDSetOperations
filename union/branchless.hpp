@@ -19,10 +19,10 @@ size_t union_scalar_branchless(const uint32_t *list1, size_t size1, const uint32
 		"mov r10d, [%q[list2]];"  // saved in r10d as value is only 4 byte wide
 
 		"cmp r11d, r10d;"   // compare *list1 and *list2
-		"setbe al;"         // set al=1 if lower or equal
-		"setae bl;"         // set bl=1 if greater or equal
+		"setbe al;"         // set al=1 if below or equal
+		"setae bl;"         // set bl=1 if above or equal
 
-		"cmovb r10d, r11d;" // save *list1 instead of *list2, if lower
+		"cmovb r10d, r11d;" // save *list1 instead of *list2, if below
 		"mov [%q[endresult]], r10d;"  // always save
 
 		"lea %q[list1], [%q[list1] + rax*4];"     // list1++, if lower or equal

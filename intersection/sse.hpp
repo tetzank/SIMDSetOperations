@@ -136,8 +136,8 @@ size_t intersect_vector_sse_asm(const uint32_t *list1, size_t size1, const uint3
 			"xor rax, rax;"
 			"xor rbx, rbx;"
 			"cmp r8d, r9d;"
-			"setle al;"
-			"setge bl;"
+			"setbe al;"
+			"setae bl;"
 			"lea %q[i_a], [%q[i_a] + rax*4];"
 			"lea %q[i_b], [%q[i_b] + rbx*4];"
 

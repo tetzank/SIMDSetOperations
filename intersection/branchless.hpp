@@ -41,8 +41,8 @@ size_t intersect_scalar_branchless(const uint32_t *list1, size_t size1, const ui
 
 		"mov r10d, [%q[list2]];"  // saved in r10d as value is only 4 byte wide
 		"cmp [%q[list1]], r10d;"  // compare *list1 and *list2
-		"setle al;"               // set al=1 if lower or equal
-		"setge bl;"               // set bl=1 if greater or equal
+		"setbe al;"               // set al=1 if below or equal
+		"setae bl;"               // set bl=1 if above or equal
 		"sete  cl;"               // set cl=1 if equal, a bit quicker than: and rax, rbx;
 
 		"mov [%q[endresult]], r10d;"  // always save, is overwritten when not equal
@@ -77,8 +77,8 @@ size_t intersect_scalar_branchless_count(const uint32_t *list1, size_t size1, co
 
 		"mov r10d, [%q[list2]];"  // saved in r10d as value is only 4 byte wide
 		"cmp [%q[list1]], r10d;"  // compare *list1 and *list2
-		"setle al;"               // set al=1 if lower or equal
-		"setge bl;"               // set bl=1 if greater or equal
+		"setbe al;"               // set al=1 if below or equal
+		"setae bl;"               // set bl=1 if above or equal
 		"sete  cl;"               // set cl=1 if equal, a bit quicker than: and rax, rbx;
 
 		"lea %q[list1], [%q[list1] + rax*4];" // list1++, if lower or equal

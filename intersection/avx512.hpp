@@ -68,8 +68,8 @@ size_t intersect_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1,
 
 		"mov r8d, [%q[list1] + %q[i_a]*4 + 28];" //int32_t a_max = list1[i_a+7];
 		"cmp r8d, [%q[list2] + %q[i_b]*4 + 28];"
-		"setle al;"
-		"setge bl;"
+		"setbe al;"
+		"setae bl;"
 		"lea %q[i_a], [%q[i_a] + rax*8];"
 		"lea %q[i_b], [%q[i_b] + rbx*8];"
 
@@ -263,8 +263,8 @@ size_t intersect_vector_avx512_asm(const uint32_t *list1, size_t size1, const ui
 		// increase i_a and i_b
 		"mov r8d, [%q[list1] + %q[i_a]*4 + 60];" // int32_t a_max = list1[i_a+15];
 		"cmp r8d, [%q[list2] + %q[i_b]*4 + 60];" // 15*4 = 60
-		"setle al;"
-		"setge bl;"
+		"setbe al;"
+		"setae bl;"
 		//"lea %q[i_a], [%q[i_a] + rax*8];" //no *16 in address mode
 		//"lea %q[i_b], [%q[i_b] + rbx*8];"
 		"shl rax, 4;"
