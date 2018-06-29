@@ -9,8 +9,8 @@
 
 #define BLEND 1
 #if BLEND
-static constexpr constarray<uint8_t,16*16> prepare_shuffle(){
-	constarray<uint8_t,16*16> arr = {0xff};
+static constexpr std::array<uint8_t,16*16> prepare_shuffle(){
+	std::array<uint8_t,16*16> arr = {0xff};
 	int size=0;
 	for(int i=0; i<16; ++i){
 		int counter=0;
@@ -28,7 +28,7 @@ static constexpr constarray<uint8_t,16*16> prepare_shuffle(){
 	return arr;
 }
 static const constexpr auto shuffle_arr = prepare_shuffle();
-static const constexpr __m128i *shuffle = (__m128i*)shuffle_arr.elems;
+static const /*constexpr*/ __m128i *shuffle = (__m128i*)shuffle_arr.data();
 #endif
 
 

@@ -104,8 +104,8 @@ size_t intersect_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1,
 }
 
 
-static constexpr constarray<uint32_t,16*15> prepare_shuffle_vectors(){
-	constarray<uint32_t,16*15> arr = {};
+static constexpr std::array<uint32_t,16*15> prepare_shuffle_vectors(){
+	std::array<uint32_t,16*15> arr = {};
 	uint32_t start=1;
 	for(uint32_t i=0; i<15; ++i){
 		uint32_t counter = start;
@@ -118,7 +118,7 @@ static constexpr constarray<uint32_t,16*15> prepare_shuffle_vectors(){
 	return arr;
 }
 static const constexpr auto shuffle_vectors_arr = prepare_shuffle_vectors();
-static const constexpr __m512i *shuffle_vectors = (__m512i*)shuffle_vectors_arr.elems;
+static const /*constexpr*/ __m512i *shuffle_vectors = (__m512i*)shuffle_vectors_arr.data();
 
 size_t intersect_vector_avx512(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;

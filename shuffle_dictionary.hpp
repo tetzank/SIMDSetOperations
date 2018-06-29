@@ -2,19 +2,12 @@
 #define SHUFFLE_DICTIONARY_HPP_
 
 #include <cstring>
+#include <array>
 #include <immintrin.h>
 
 
-// C++17 std::array has constexpr operator[], use our own for now
-template<typename T, int N>
-struct constarray{
-	T elems[N];
-	constexpr       T &operator[](size_t i)       { return elems[i]; }
-	constexpr const T &operator[](size_t i) const { return elems[i]; }
-};
-
-static constexpr constarray<uint8_t,16*16> prepare_shuffling_dictionary(){
-	constarray<uint8_t,16*16> arr = {0xff};
+static constexpr std::array<uint8_t,16*16> prepare_shuffling_dictionary(){
+	std::array<uint8_t,16*16> arr = {0xff};
 	int size=0;
 	for(int i=0; i<16; ++i){
 		int counter=0;
@@ -32,11 +25,11 @@ static constexpr constarray<uint8_t,16*16> prepare_shuffling_dictionary(){
 	return arr;
 }
 static const constexpr auto shuffle_mask_arr = prepare_shuffling_dictionary();
-static const constexpr __m128i *shuffle_mask = (__m128i*)shuffle_mask_arr.elems;
+static const /*constexpr*/ __m128i *shuffle_mask = (__m128i*)shuffle_mask_arr.data();
 
 
-static constexpr constarray<uint32_t,256*8> prepare_shuffling_dictionary_avx(){
-	constarray<uint32_t,256*8> arr = {};
+static constexpr std::array<uint32_t,256*8> prepare_shuffling_dictionary_avx(){
+	std::array<uint32_t,256*8> arr = {};
 	for(int i=0; i<256; ++i){
 		int count=0, rest=7;
 		for(int b=0; b<8; ++b){
@@ -53,7 +46,7 @@ static constexpr constarray<uint32_t,256*8> prepare_shuffling_dictionary_avx(){
 	return arr;
 }
 static const constexpr auto shuffle_mask_avx_arr = prepare_shuffling_dictionary_avx();
-static const constexpr uint32_t *shuffle_mask_avx = shuffle_mask_avx_arr.elems;
+static const /*constexpr*/ uint32_t *shuffle_mask_avx = shuffle_mask_avx_arr.data();
 
 
 #endif

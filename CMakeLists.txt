@@ -4,9 +4,9 @@ cmake_minimum_required(VERSION 2.8)
 if(NOT DEFINED CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.")
 endif(NOT DEFINED CMAKE_BUILD_TYPE)
-# set default compiler flags to enable C++14
+# set default compiler flags to enable C++17
 if(NOT DEFINED CMAKE_CXX_FLAGS)
-	set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -std=c++14 -march=native" CACHE STRING "Flags used by the compiler during all build types.")
+	set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -std=c++17 -march=native" CACHE STRING "Flags used by the compiler during all build types.")
 endif(NOT DEFINED CMAKE_CXX_FLAGS)
 # enable some optimization even in debug build
 if(NOT DEFINED CMAKE_CXX_FLAGS_DEBUG)
