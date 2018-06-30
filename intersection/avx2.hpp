@@ -135,6 +135,9 @@ size_t intersect_vector_avx2_asm(const uint32_t *list1, size_t size1, const uint
 		"xor rax, rax;"
 		"xor rbx, rbx;"
 		"xor r9, r9;"
+#if IACA_INTERSECT_AVX2
+		IACA_START_ASM
+#endif
 	"1: "
  		"cmp %[i_a], %[st_a];"
  		"je 2f;"
@@ -193,6 +196,9 @@ size_t intersect_vector_avx2_asm(const uint32_t *list1, size_t size1, const uint
 		"add %q[count], r9;"
 
  		"jmp 1b;"
+#if IACA_INTERSECT_AVX2
+		IACA_END_ASM
+#endif
 	"2: "
 		".att_syntax;"
 		: [count]"+r"(count), [i_a]"+r"(i_a), [i_b]"+r"(i_b)
@@ -224,6 +230,9 @@ size_t intersect_vector_avx2_asm_count(const uint32_t *list1, size_t size1, cons
 		"xor rax, rax;"
 		"xor rbx, rbx;"
 		"xor r9, r9;"
+#if IACA_INTERSECT_AVX2_COUNT
+		IACA_START_ASM
+#endif
 	"1: "
 		"cmp %[i_a], %[st_a];"
 		"je 2f;"
@@ -274,6 +283,9 @@ size_t intersect_vector_avx2_asm_count(const uint32_t *list1, size_t size1, cons
 		"add %q[count], r9;"
 
 		"jmp 1b;"
+#if IACA_INTERSECT_AVX2_COUNT
+		IACA_END_ASM
+#endif
 	"2: "
 		".att_syntax;"
 		: [count]"+r"(count), [i_a]"+r"(i_a), [i_b]"+r"(i_b)

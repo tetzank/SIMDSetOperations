@@ -1,6 +1,7 @@
 #ifndef INTERSECTION_AVX512_HPP_
 #define INTERSECTION_AVX512_HPP_
 
+#include <cstdint>
 #include <immintrin.h>
 
 #include "naive.hpp"
@@ -57,6 +58,9 @@ size_t intersect_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1,
 		"xor rbx, rbx;"
 		"xor r9, r9;"
 		"vpxord zmm0, zmm0, zmm0;"
+#if IACA_INTERSECT_AVX512_CONFLICT
+		IACA_START_ASM
+#endif
 	"1: "
  		"cmp %[i_a], %[st_a];"
  		"je 2f;"
@@ -83,6 +87,9 @@ size_t intersect_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1,
 		"add %q[count], r9;"
 
  		"jmp 1b;"
+#if IACA_INTERSECT_AVX512_CONFLICT
+		IACA_END_ASM
+#endif
 	"2: "
 		".att_syntax;"
 		: [count]"+r"(count), [i_a]"+r"(i_a), [i_b]"+r"(i_b)
@@ -251,6 +258,9 @@ size_t intersect_vector_avx512_asm(const uint32_t *list1, size_t size1, const ui
 		"xor rax, rax;"
 		"xor rbx, rbx;"
 		"xor r9, r9;"
+#if IACA_INTERSECT_AVX512
+		IACA_START_ASM
+#endif
 	"1: "
 		"cmp %[i_a], %[st_a];"
 		"je 2f;"
@@ -334,6 +344,9 @@ size_t intersect_vector_avx512_asm(const uint32_t *list1, size_t size1, const ui
 		"add %q[count], r9;"
 
 		"jmp 1b;"
+#if IACA_INTERSECT_AVX512
+		IACA_END_ASM
+#endif
 	"2: "
 		".att_syntax;"
 		: [count]"+r"(count), [i_a]"+r"(i_a), [i_b]"+r"(i_b)

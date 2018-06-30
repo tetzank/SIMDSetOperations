@@ -33,6 +33,9 @@ size_t intersect_scalar_branchless(const uint32_t *list1, size_t size1, const ui
 		"xor rax, rax;"
 		"xor rbx, rbx;"
 		"xor rcx, rcx;"
+#if IACA_INTERSECT_BRANCHLESS
+		IACA_START_ASM
+#endif
 	"1: "
 		"cmp %[list1], %[end1];"  // list1 != end1
 		"je 2f;"
@@ -52,6 +55,9 @@ size_t intersect_scalar_branchless(const uint32_t *list1, size_t size1, const ui
 		"lea %q[endresult], [%q[endresult] + rcx*4];" // result++, if equal
 
 		"jmp 1b;"       // to loop head
+#if IACA_INTERSECT_BRANCHLESS
+		IACA_END_ASM
+#endif
 	"2: "
 		".att_syntax;"
 
@@ -69,6 +75,9 @@ size_t intersect_scalar_branchless_count(const uint32_t *list1, size_t size1, co
 		"xor rax, rax;"
 		"xor rbx, rbx;"
 		"xor rcx, rcx;"
+#if IACA_INTERSECT_BRANCHLESS_COUNT
+		IACA_START_ASM
+#endif
 	"1: "
 		"cmp %[list1], %[end1];"  // list1 != end1
 		"je 2f;"
@@ -86,6 +95,9 @@ size_t intersect_scalar_branchless_count(const uint32_t *list1, size_t size1, co
 		"lea %q[count], [%q[count] + rcx];"   // count++, if equal
 
 		"jmp 1b;"       // to loop head
+#if IACA_INTERSECT_BRANCHLESS_COUNT
+		IACA_END_ASM
+#endif
 	"2: "
 		".att_syntax;"
 

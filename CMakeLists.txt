@@ -21,6 +21,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 find_package(OpenMP REQUIRED)
 find_package(GBenchmark)
 
+include(${CMAKE_SOURCE_DIR}/cmake/iaca.cmake)
+
 configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/projectconfig.h.in" "${CMAKE_CURRENT_BINARY_DIR}/projectconfig.h")
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -61,3 +63,18 @@ if(${GBENCHMARK_FOUND})
 else()
 	message(STATUS "google benchmark not found, skipping benchmark programs")
 endif()
+
+
+# targets to analyze with IACA
+# intersection
+foreach(algo BRANCHLESS BRANCHLESS_COUNT AVX2 AVX2_COUNT AVX512_CONFLICT AVX512)
+	IACA_TARGET(IACA_INTERSECT_${algo} set_intersection.cpp)
+endforeach(algo)
+# difference
+foreach(algo AVX512_CONFLICT)
+	IACA_TARGET(IACA_DIFFERENCE_${algo} set_difference.cpp)
+endforeach(algo)
+# union
+foreach(algo BRANCHLESS)
+	IACA_TARGET(IACA_UNION_${algo} set_union.cpp)
+endforeach(algo)

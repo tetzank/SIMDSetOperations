@@ -9,6 +9,9 @@ size_t union_scalar_branchless(const uint32_t *list1, size_t size1, const uint32
 	asm(".intel_syntax noprefix;"
 		"xor rax, rax;"
 		"xor rbx, rbx;"
+#if IACA_UNION_BRANCHLESS
+		IACA_START_ASM
+#endif
 	"1: "
 		"cmp %[list1], %[end1];"  // list1 != end1
 		"je 3f;"
@@ -34,6 +37,9 @@ size_t union_scalar_branchless(const uint32_t *list1, size_t size1, const uint32
 // 		"je 2f;"
 // 		"cmp %2, %4;"  // list2 != end2
 // 		"jne 1b;"
+#if IACA_UNION_BRANCHLESS
+		IACA_END_ASM
+#endif
 	"2: "
 		// inline memcpy
 		//"cld;"

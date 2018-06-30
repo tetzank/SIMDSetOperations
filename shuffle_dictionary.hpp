@@ -6,6 +6,10 @@
 #include <immintrin.h>
 
 
+#define IACA_START_ASM "mov ebx, 111;.byte 0x64, 0x67, 0x90;"
+#define IACA_END_ASM   "mov ebx, 222;.byte 0x64, 0x67, 0x90;"
+
+
 static constexpr std::array<uint8_t,16*16> prepare_shuffling_dictionary(){
 	std::array<uint8_t,16*16> arr = {0xff};
 	int size=0;

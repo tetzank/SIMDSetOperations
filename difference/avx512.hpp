@@ -94,6 +94,9 @@ size_t difference_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1
 		"xor r9, r9;"
 		"vpxord zmm0, zmm0, zmm0;"
 		"kxnorw k4, k4, k4;"
+#if IACA_DIFFERENCE_AVX512_CONFLICT
+		IACA_START_ASM
+#endif
 	"1: "
  		"cmp %[i_a], %[st_a];"
  		"je 2f;"
@@ -129,6 +132,9 @@ size_t difference_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1
 		"add %q[count], r9;"
 
  		"jmp 1b;"
+#if IACA_DIFFERENCE_AVX512_CONFLICT
+		IACA_END_ASM
+#endif
 	"2: "
 		// save k4 and handle in tail
 		"kmovw %k[mask], k4;"
