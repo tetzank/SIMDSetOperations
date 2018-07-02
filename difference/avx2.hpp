@@ -3,6 +3,10 @@
 
 #include <immintrin.h>
 
+#if IACA
+#include <iacaMarks.h>
+#endif
+
 
 size_t difference_vector_avx2(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;
@@ -12,6 +16,9 @@ size_t difference_vector_avx2(const uint32_t *list1, size_t size1, const uint32_
 
 	__m256i cmp_mask = _mm256_setzero_si256();
 	__m256i splat_last = _mm256_set1_epi32(7);
+#if IACA_DIFFERENCE_AVX2
+	IACA_START
+#endif
 	while(i_a < st_a && i_b < st_b){
 		__m256i v_a = _mm256_load_si256((__m256i*)&list1[i_a]);
 		__m256i v_b = _mm256_load_si256((__m256i*)&list2[i_b]);
@@ -77,6 +84,9 @@ size_t difference_vector_avx2(const uint32_t *list1, size_t size1, const uint32_
 
 		count += _mm_popcnt_u32(mask);
 	}
+#if IACA_DIFFERENCE_AVX2
+	IACA_END
+#endif
 
 	// if cmp_mask isn't 0, then some elements were seen in SIMD code above
 	// we have to skip them when processing the tail

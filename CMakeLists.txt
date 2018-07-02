@@ -66,15 +66,19 @@ endif()
 
 
 # targets to analyze with IACA
-# intersection
-foreach(algo BRANCHLESS BRANCHLESS_COUNT AVX2 AVX2_COUNT AVX512_CONFLICT AVX512)
-	IACA_TARGET(IACA_INTERSECT_${algo} set_intersection.cpp)
-endforeach(algo)
-# difference
-foreach(algo AVX512_CONFLICT)
-	IACA_TARGET(IACA_DIFFERENCE_${algo} set_difference.cpp)
-endforeach(algo)
-# union
-foreach(algo BRANCHLESS)
-	IACA_TARGET(IACA_UNION_${algo} set_union.cpp)
-endforeach(algo)
+if(IACA_FOUND)
+	# intersection
+	foreach(algo SCALAR SCALAR_COUNT BRANCHLESS BRANCHLESS_COUNT AVX2 AVX2_COUNT AVX512_CONFLICT AVX512)
+		IACA_TARGET(IACA_INTERSECT_${algo} set_intersection.cpp)
+	endforeach(algo)
+	# difference
+	foreach(algo AVX2 AVX512_CONFLICT)
+		IACA_TARGET(IACA_DIFFERENCE_${algo} set_difference.cpp)
+	endforeach(algo)
+	# union
+	foreach(algo BRANCHLESS)
+		IACA_TARGET(IACA_UNION_${algo} set_union.cpp)
+	endforeach(algo)
+else()
+	message(STATUS "iaca not found, disabled all iaca targets")
+endif()
