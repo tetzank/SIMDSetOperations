@@ -51,7 +51,7 @@ int main(){
 	puts("stl merge:");
 	run(lists, merge_scalar_stl);
 
-#ifdef __SSE2__
+#ifdef __SSE4_1__
 	puts("SSE merge:");
 	run(lists, merge_vector_sse);
 	puts("SSE merge alignr:");

@@ -10,7 +10,7 @@
 
 size_t merge_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count = 0;
-#ifdef __SSE2__
+#ifdef __SSE4_1__
 	size_t i_a = 0, i_b = 0;
 	// trim lengths to be a multiple of 4
 	size_t st_a = ((size1-1) / 4) * 4;
@@ -123,7 +123,7 @@ size_t merge_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *lis
 // seems to have the same performance characteristic
 size_t merge_vector_sse_alignr(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count = 0;
-#ifdef __SSE2__
+#ifdef __SSE4_1__
 	size_t i_a = 0, i_b = 0;
 	// trim lengths to be a multiple of 4
 	size_t st_a = ((size1-1) / 4) * 4;

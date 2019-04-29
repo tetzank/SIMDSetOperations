@@ -34,7 +34,7 @@ static const /*constexpr*/ __m128i *shuffle = (__m128i*)shuffle_arr.data();
 
 size_t union_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count = 0;
-#ifdef __SSE2__
+#ifdef __SSE4_1__
 	size_t i_a = 0, i_b = 0;
 	// trim lengths to be a multiple of 4
 	size_t st_a = ((size1-1) / 4) * 4;
@@ -89,7 +89,7 @@ size_t union_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *lis
 #else
 			// deduplicate over block end, 1 2 3 4 | 4 5 6 7
 			// remember previous minimum vector, only use highest value
-			__m128i recon = _mm_blend_epi32(old, step4min, 0b0111);
+			__m128i recon = (__m128i)_mm_blend_ps((__m128)old, (__m128)step4min, 0b0111);
 			// in register deduplicate, removes duplicates in one vector
 			// and across as we moved in the highest previous value
 			__m128i dedup = _mm_shuffle_epi32(recon, cyclic_shift);

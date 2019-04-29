@@ -59,7 +59,7 @@ int main(){
 	puts("asm branchless scalar union:");
 	run(lists, union_scalar_branchless);
 
-#ifdef __SSE2__
+#ifdef __SSE4_1__
 	puts("SSE union:");
 	run(lists, union_vector_sse);
 #endif
