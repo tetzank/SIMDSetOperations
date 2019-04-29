@@ -53,6 +53,8 @@ int main(){
 #ifdef __SSE2__
 	puts("SSE merge:");
 	run(lists, merge_vector_sse);
+	puts("SSE merge alignr:");
+	run(lists, merge_vector_sse_alignr);
 #endif
 
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
