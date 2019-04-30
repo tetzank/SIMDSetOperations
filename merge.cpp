@@ -6,6 +6,7 @@
 #include "merge/naive.hpp"
 #include "merge/stl.hpp"
 #include "merge/sse.hpp"
+#include "merge/avx2.hpp"
 #include "merge/avx512.hpp"
 
 
@@ -55,6 +56,11 @@ int main(){
 	run(lists, merge_vector_sse);
 	puts("SSE merge alignr:");
 	run(lists, merge_vector_sse_alignr);
+#endif
+
+#ifdef __AVX2__
+	puts("AVX2 bitonic");
+	run(lists, merge_vector_avx2_bitonic);
 #endif
 
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)

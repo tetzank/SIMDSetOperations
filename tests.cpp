@@ -29,6 +29,7 @@
 #include "merge/naive.hpp"
 #include "merge/stl.hpp"
 #include "merge/sse.hpp"
+#include "merge/avx2.hpp"
 #include "merge/avx512.hpp"
 
 
@@ -286,6 +287,9 @@ int main(){
 			FN(merge_scalar_stl),
 			FN(merge_vector_sse),
 			FN(merge_vector_sse_alignr),
+#ifdef __AVX2__
+			FN(merge_vector_avx2_bitonic),
+#endif
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 			FN(merge_vector_avx512_bitonic2),
 #endif
