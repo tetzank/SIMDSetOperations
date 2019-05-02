@@ -12,7 +12,6 @@
 
 size_t merge_vector_avx512_bitonic2(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count = 0;
-#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 	size_t i_a = 0, i_b = 0;
 	// trim lengths to be a multiple of 16
 	size_t st_a = ((size1-1) / 16) * 16;
@@ -125,7 +124,6 @@ size_t merge_vector_avx512_bitonic2(const uint32_t *list1, size_t size1, const u
 	// scalar tail
 	count += merge_scalar(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
 
-#endif
 	return count;
 }
 

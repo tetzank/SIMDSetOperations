@@ -13,7 +13,6 @@
 // invert mask (done with cmpeq instead of cmpneq as in intersection), only upper part, compressstore upper part with mask
 size_t difference_vector_avx512_conflict(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;
-#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 	size_t st_a = (size1 / 8) * 8;
 	size_t st_b = (size2 / 8) * 8;
 
@@ -74,13 +73,11 @@ size_t difference_vector_avx512_conflict(const uint32_t *list1, size_t size1, co
 		list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count
 	);
 
-#endif
 	return count;
 }
 
 size_t difference_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;
-#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 	size_t st_a = (size1 / 8) * 8;
 	size_t st_b = (size2 / 8) * 8;
 	unsigned mask;
@@ -179,7 +176,6 @@ size_t difference_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1
 	count += difference_scalar(
 		list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count
 	);
-#endif
 	return count;
 }
 

@@ -6,7 +6,6 @@
 #include "branchless.hpp"
 
 
-#ifdef __AVX__
 // taken from asmlib by agner: http://www.agner.org/optimize/
 // emulate permute8x32 AVX2-instruction in AVX
 inline __m256 permute8x32(__m256 const &table, __m256i const &index){
@@ -31,11 +30,9 @@ inline __m256 permute8x32(__m256 const &table, __m256i const &index){
 	// blend the two permutes
 	return _mm256_blendv_ps(r0, r1, kk);
 }
-#endif
 
 size_t intersect_vector_avx(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;
-#ifdef __AVX__
 	size_t st_a = (size1 / 8) * 8;
 	size_t st_b = (size2 / 8) * 8;
 	while(i_a < st_a && i_b < st_b){
@@ -101,12 +98,10 @@ size_t intersect_vector_avx(const uint32_t *list1, size_t size1, const uint32_t 
 	// intersect the tail using scalar intersection
 	count += intersect_scalar(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
 
-#endif
 	return count;
 }
 size_t intersect_vector_avx_count(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2){
 	size_t count=0, i_a=0, i_b=0;
-#ifdef __AVX__
 	size_t st_a = (size1 / 8) * 8;
 	size_t st_b = (size2 / 8) * 8;
 	while(i_a < st_a && i_b < st_b){
@@ -163,7 +158,6 @@ size_t intersect_vector_avx_count(const uint32_t *list1, size_t size1, const uin
 	// intersect the tail using scalar intersection
 	count += intersect_scalar_count(list1+i_a, size1-i_a, list2+i_b, size2-i_b);
 
-#endif
 	return count;
 }
 
@@ -171,7 +165,6 @@ size_t intersect_vector_avx_count(const uint32_t *list1, size_t size1, const uin
 #if 0
 size_t intersect_vector_avx_asm(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;
-#ifdef __AVX__
 	size_t st_a = (size1 / 8) * 8;
 	size_t st_b = (size2 / 8) * 8;
 	uint32_t xorconst[] = {4,4,4,4};
@@ -265,13 +258,11 @@ size_t intersect_vector_avx_asm(const uint32_t *list1, size_t size1, const uint3
 	count += intersect_scalar_branchless(
 		list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count
 	);
-#endif
 	return count;
 }
 #endif
 size_t intersect_vector_avx_asm_count(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2){
 	size_t count=0, i_a=0, i_b=0;
-#ifdef __AVX__
 	size_t st_a = (size1 / 8) * 8;
 	size_t st_b = (size2 / 8) * 8;
 
@@ -346,7 +337,6 @@ size_t intersect_vector_avx_asm_count(const uint32_t *list1, size_t size1, const
 	count += intersect_scalar_branchless_count(
 		list1+i_a, size1-i_a, list2+i_b, size2-i_b
 	);
-#endif
 	return count;
 }
 

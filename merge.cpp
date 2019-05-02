@@ -5,9 +5,15 @@
 
 #include "merge/naive.hpp"
 #include "merge/stl.hpp"
-#include "merge/sse.hpp"
-#include "merge/avx2.hpp"
-#include "merge/avx512.hpp"
+#ifdef __SSE4_1__
+#  include "merge/sse.hpp"
+#endif
+#ifdef __AVX2__
+#  include "merge/avx2.hpp"
+#endif
+#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
+#  include "merge/avx512.hpp"
+#endif
 
 
 void run(uint32_t **lists, size_t (*func)(const uint32_t*,size_t,const uint32_t*,size_t,uint32_t*)){

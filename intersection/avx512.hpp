@@ -16,7 +16,6 @@
 // convert result vector to mask, compressstore
 size_t intersect_vector_avx512_conflict(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;
-#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 	size_t st_a = (size1 / 8) * 8;
 	size_t st_b = (size2 / 8) * 8;
 
@@ -42,13 +41,11 @@ size_t intersect_vector_avx512_conflict(const uint32_t *list1, size_t size1, con
 	// intersect the tail using scalar intersection
 	count += intersect_scalar(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
 
-#endif
 	return count;
 }
 
 size_t intersect_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;
-#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 	size_t st_a = (size1 / 8) * 8;
 	size_t st_b = (size2 / 8) * 8;
 
@@ -106,7 +103,6 @@ size_t intersect_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1,
 	count += intersect_scalar_branchless(
 		list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count
 	);
-#endif
 	return count;
 }
 
@@ -129,7 +125,6 @@ static const /*constexpr*/ __m512i *shuffle_vectors = (__m512i*)shuffle_vectors_
 
 size_t intersect_vector_avx512(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;
-#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 	size_t st_a = (size1 / 16) * 16;
 	size_t st_b = (size2 / 16) * 16;
 
@@ -226,13 +221,11 @@ size_t intersect_vector_avx512(const uint32_t *list1, size_t size1, const uint32
 	// intersect the tail using scalar intersection
 	count += intersect_scalar(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
 
-#endif
 	return count;
 }
 
 size_t intersect_vector_avx512_asm(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;
-#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 	size_t st_a = (size1 / 16) * 16;
 	size_t st_b = (size2 / 16) * 16;
 
@@ -364,7 +357,6 @@ size_t intersect_vector_avx512_asm(const uint32_t *list1, size_t size1, const ui
 	count += intersect_scalar_branchless(
 		list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count
 	);
-#endif
 	return count;
 }
 

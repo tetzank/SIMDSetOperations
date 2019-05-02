@@ -8,13 +8,25 @@
 #include "intersection/naive.hpp"
 #include "intersection/stl.hpp"
 #include "intersection/branchless.hpp"
-#include "intersection/sse.hpp"
-#include "intersection/avx.hpp"
-#include "intersection/avx2.hpp"
-#include "intersection/avx512.hpp"
-#include "intersection/galloping.hpp"
-#include "intersection/galloping_sse.hpp"
-#include "intersection/galloping_avx2.hpp"
+
+#ifdef __SSE2__
+#  include "intersection/sse.hpp"
+#  include "intersection/galloping_sse.hpp"
+#endif
+
+#ifdef __AVX__
+#  include "intersection/avx.hpp"
+#endif
+
+#ifdef __AVX2__
+#  include "intersection/avx2.hpp"
+#  include "intersection/galloping_avx2.hpp"
+#  include "intersection/galloping.hpp"
+#endif
+
+#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
+#  include "intersection/avx512.hpp"
+#endif
 
 
 
@@ -130,13 +142,13 @@ int main(){
 #endif
 
 #ifdef __AVX__
-
 	puts("256bit AVX vector: (not AVX2)");
 	run(lists, intersect_vector_avx, intersect_vector_avx_count);
 	puts("256bit AVX vector: (not AVX2) - asm");
 	//FIXME: normal intersection segfaults
 	//run(lists, intersect_vector_avx_asm, intersect_vector_avx_asm_count);
 	run(lists, nullptr, intersect_vector_avx_asm_count); 
+#endif
 
 #ifdef __AVX2__
 	puts("256bit AVX2 vector");
@@ -145,7 +157,6 @@ int main(){
 	run(lists, intersect_vector_avx2_asm, intersect_vector_avx2_asm_count);
 #endif
 
-#endif
 
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 	puts("512bit AVX512 vector using vpconflictd");

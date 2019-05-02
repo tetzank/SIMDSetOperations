@@ -3,15 +3,12 @@
 
 #include <immintrin.h>
 
-#include <cassert>
-
 
 // a naive version inspired by this paper:
 // "SIMD Compression and the Intersection of Sorted Integers"
 // source code: https://github.com/lemire/SIMDCompressionAndIntersection
 size_t intersect_galloping_V1_AVX(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t i=0, j=0, count=0;
-#ifdef __AVX__
 
 	for(; i<size1; ++i){
 		uint32_t ri = list1[i];
@@ -58,12 +55,10 @@ finishscalar:
 		i += (data1 <= data2);
 		j += (data1 >= data2);
 	}
-#endif
 	return count;
 }
 size_t intersect_galloping_V1_AVX_count(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2){
 	size_t i=0, j=0, count=0;
-#ifdef __AVX__
 	size_t st_b = (size2 / 16) * 16;
 
 	for(; i<size1; ++i){
@@ -111,13 +106,11 @@ finishscalar:
 		i += (data1 <= data2);
 		j += (data1 >= data2);
 	}
-#endif
 	return count;
 }
 
 size_t intersect_galloping_V1_SSE(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t i=0, j=0, count=0;
-#ifdef __SSE4_2__
 
 	for(; i<size1; ++i){
 		uint32_t ri = list1[i];
@@ -159,12 +152,10 @@ finishscalar:
 		i += (data1 <= data2);
 		j += (data1 >= data2);
 	}
-#endif
 	return count;
 }
 size_t intersect_galloping_V1_SSE_count(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2){
 	size_t i=0, j=0, count=0;
-#ifdef __SSE4_2__
 
 	for(; i<size1; ++i){
 		uint32_t ri = list1[i];
@@ -205,7 +196,6 @@ finishscalar:
 		i += (data1 <= data2);
 		j += (data1 >= data2);
 	}
-#endif
 	return count;
 }
 

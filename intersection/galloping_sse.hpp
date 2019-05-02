@@ -1,6 +1,8 @@
 #ifndef GALLOPING_SSE_HPP_
 #define GALLOPING_SSE_HPP_
 
+#include <cassert>
+
 
 // copied from:
 // https://github.com/lemire/SIMDCompressionAndIntersection

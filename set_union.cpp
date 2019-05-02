@@ -7,8 +7,12 @@
 #include "union/naive.hpp"
 #include "union/stl.hpp"
 #include "union/branchless.hpp"
-#include "union/sse.hpp"
-#include "union/avx512.hpp"
+#ifdef __SSE4_1__
+#  include "union/sse.hpp"
+#endif
+#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
+#  include "union/avx512.hpp"
+#endif
 
 
 void run(uint32_t **lists, size_t (*func)(const uint32_t*,size_t,const uint32_t*,size_t,uint32_t*)){

@@ -11,7 +11,6 @@
 // taken from: https://highlyscalable.wordpress.com/2012/06/05/fast-intersection-sorted-lists-sse/
 size_t intersect_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count = 0;
-#ifdef __SSE2__
 	size_t i_a = 0, i_b = 0;
 
 	// trim lengths to be a multiple of 4
@@ -59,13 +58,11 @@ size_t intersect_vector_sse(const uint32_t *list1, size_t size1, const uint32_t 
 	// intersect the tail using scalar intersection
 	count += intersect_scalar(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
 
-#endif
 	return count;
 }
 
 size_t intersect_vector_sse_count(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2){
 	size_t count = 0;
-#ifdef __SSE2__
 	size_t i_a = 0, i_b = 0;
 
 	// trim lengths to be a multiple of 4
@@ -110,13 +107,11 @@ size_t intersect_vector_sse_count(const uint32_t *list1, size_t size1, const uin
 	// intersect the tail using scalar intersection
 	count += intersect_scalar_count(list1+i_a, size1-i_a, list2+i_b, size2-i_b);
 
-#endif
 	return count;
 }
 
 size_t intersect_vector_sse_asm(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count = 0;
-#ifdef __SSE2__
 	size_t i_a = 0, i_b = 0;
 
 	// trim lengths to be a multiple of 4
@@ -186,7 +181,6 @@ size_t intersect_vector_sse_asm(const uint32_t *list1, size_t size1, const uint3
 	// intersect the tail using scalar intersection
 	count += intersect_scalar(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
 
-#endif
 	return count;
 }
 

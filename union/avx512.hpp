@@ -62,7 +62,6 @@ alignas(64) static uint32_t shuffles2[][16]={
 
 size_t union_vector_avx512_bitonic(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count = 0;
-#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 	size_t i_a = 0, i_b = 0;
 	// trim lengths to be a multiple of 16
 	size_t st_a = ((size1-1) / 16) * 16;
@@ -213,14 +212,12 @@ size_t union_vector_avx512_bitonic(const uint32_t *list1, size_t size1, const ui
 	// scalar tail
 	count += union_scalar_branchless(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
 
-#endif
 	return count;
 }
 
 // nearly the same as above, only changed to replace one shuffle with a blend
 size_t union_vector_avx512_bitonic2(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count = 0;
-#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 	size_t i_a = 0, i_b = 0;
 	// trim lengths to be a multiple of 16
 	size_t st_a = ((size1-1) / 16) * 16;
@@ -373,7 +370,6 @@ size_t union_vector_avx512_bitonic2(const uint32_t *list1, size_t size1, const u
 	// scalar tail
 	count += union_scalar_branchless(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
 
-#endif
 	return count;
 }
 

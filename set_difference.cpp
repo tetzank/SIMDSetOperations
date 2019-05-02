@@ -8,9 +8,15 @@
 
 #include "difference/naive.hpp"
 #include "difference/stl.hpp"
-#include "difference/sse.hpp"
-#include "difference/avx2.hpp"
-#include "difference/avx512.hpp"
+#ifdef __SSE2__
+#  include "difference/sse.hpp"
+#endif
+#ifdef __AVX2__
+#  include "difference/avx2.hpp"
+#endif
+#if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
+#  include "difference/avx512.hpp"
+#endif
 
 
 
