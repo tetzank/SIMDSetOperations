@@ -1,8 +1,11 @@
 #ifndef MERGE_AVX2_HPP_
 #define MERGE_AVX2_HPP_
 
+#include <cstdint>
+
 #include <immintrin.h>
 
+size_t merge_scalar(const uint32_t*, size_t, const uint32_t*, size_t, uint32_t*);
 
 size_t merge_vector_avx2_bitonic(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count = 0;
