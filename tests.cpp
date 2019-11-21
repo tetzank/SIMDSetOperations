@@ -281,6 +281,9 @@ int main(){
 #  ifndef DISABLE_ASM
 			FN(intersect_vector_avx512_asm),
 #  endif
+#  ifdef __AVX512VP2INTERSECT__
+			FN(intersect_vector_avx512_2intersect)
+#  endif
 #endif
 		},
 		{

@@ -179,6 +179,10 @@ int main(){
 	puts("512bit AVX512 vector using shuffling - asm");
 	run(lists, intersect_vector_avx512_asm);
 #endif
+#ifdef __AVX512VP2INTERSECT__
+	puts("512bit AVX512 vector using vp2intersect");
+	run(lists, intersect_vector_avx512_2intersect);
+#endif
 #endif
 
 #if 0

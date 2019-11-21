@@ -10,6 +10,36 @@
 #include "../shuffle_dictionary.hpp"
 
 
+#ifdef __AVX512VP2INTERSECT__
+size_t intersect_vector_avx512_2intersect(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
+	size_t count=0, i_a=0, i_b=0;
+	size_t st_a = (size1 / 16) * 16;
+	size_t st_b = (size2 / 16) * 16;
+
+	while(i_a < st_a && i_b < st_b){
+		__m512i v_a = _mm512_load_epi32(&list1[i_a]);
+		__m512i v_b = _mm512_load_epi32(&list2[i_b]);
+
+		int32_t a_max = list1[i_a+15];
+		int32_t b_max = list2[i_b+15];
+		i_a += (a_max <= b_max) * 16;
+		i_b += (a_max >= b_max) * 16;
+
+		__mmask16 k_a, k_b;
+		_mm512_2intersect_epi32(v_a, v_b, &k_a, &k_b);
+
+		_mm512_mask_compressstoreu_epi32(&result[count], k_a, v_a);
+
+		count += _mm_popcnt_u32(k_a);
+	}
+	// intersect the tail using scalar intersection
+	count += intersect_scalar(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
+
+	return count;
+}
+#endif
+
+
 // simple intersection with vpconflictd
 //
 // load 256-bit from each list, check for common elements with vpconflictd
