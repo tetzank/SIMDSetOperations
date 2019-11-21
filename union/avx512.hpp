@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-#include "branchless.hpp"
+#include "naive.hpp"
 
 
 // union based on bitonic merge, always using the 2-vector shuffle for now
@@ -210,7 +210,7 @@ size_t union_vector_avx512_bitonic(const uint32_t *list1, size_t size1, const ui
 	}
 
 	// scalar tail
-	count += union_scalar_branchless(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
+	count += union_scalar(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
 
 	return count;
 }
@@ -368,7 +368,7 @@ size_t union_vector_avx512_bitonic2(const uint32_t *list1, size_t size1, const u
 	}
 
 	// scalar tail
-	count += union_scalar_branchless(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
+	count += union_scalar(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
 
 	return count;
 }

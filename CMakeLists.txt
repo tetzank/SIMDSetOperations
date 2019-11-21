@@ -23,11 +23,15 @@ find_package(GBenchmark)
 
 include(${CMAKE_SOURCE_DIR}/cmake/iaca.cmake)
 
+
+option(DISABLE_ASM "disable variants with inline assembly" OFF)
+
+
 configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/projectconfig.h.in" "${CMAKE_CURRENT_BINARY_DIR}/projectconfig.h")
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
 add_definitions(${OpenMP_CXX_FLAGS})
+
 
 add_executable(genlists genLists.cpp)
 

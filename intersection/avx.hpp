@@ -161,6 +161,7 @@ size_t intersect_vector_avx_count(const uint32_t *list1, size_t size1, const uin
 	return count;
 }
 
+#ifndef DISABLE_ASM
 //FIXME: broken atm
 #if 0
 size_t intersect_vector_avx_asm(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
@@ -339,6 +340,7 @@ size_t intersect_vector_avx_asm_count(const uint32_t *list1, size_t size1, const
 	);
 	return count;
 }
+#endif
 
 
 #endif

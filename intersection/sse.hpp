@@ -110,6 +110,7 @@ size_t intersect_vector_sse_count(const uint32_t *list1, size_t size1, const uin
 	return count;
 }
 
+#ifndef DISABLE_ASM
 size_t intersect_vector_sse_asm(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count = 0;
 	size_t i_a = 0, i_b = 0;
@@ -183,5 +184,6 @@ size_t intersect_vector_sse_asm(const uint32_t *list1, size_t size1, const uint3
 
 	return count;
 }
+#endif
 
 #endif

@@ -11,7 +11,7 @@
 
 #ifdef __SSE2__
 #  include "intersection/sse.hpp"
-#  include "intersection/galloping_sse.hpp"
+//#  include "intersection/galloping_sse.hpp"
 #endif
 
 #ifdef __AVX__
@@ -20,8 +20,8 @@
 
 #ifdef __AVX2__
 #  include "intersection/avx2.hpp"
-#  include "intersection/galloping_avx2.hpp"
-#  include "intersection/galloping.hpp"
+//#  include "intersection/galloping_avx2.hpp"
+//#  include "intersection/galloping.hpp"
 #endif
 
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
@@ -131,42 +131,54 @@ int main(){
 	puts("c branchless scalar:");
 	run(lists, intersect_scalar_branchless_c, intersect_scalar_branchless_c_count);
 
+#ifndef DISABLE_ASM
 	puts("asm branchless scalar:");
 	run(lists, intersect_scalar_branchless, intersect_scalar_branchless_count);
+#endif
 
 #ifdef __SSE2__
 	puts("128bit SSE vector:");
 	run(lists, intersect_vector_sse, intersect_vector_sse_count);
+#ifndef DISABLE_ASM
 	puts("128bit SSE vector - asm:");
 	run(lists, intersect_vector_sse_asm);
+#endif
 #endif
 
 #ifdef __AVX__
 	puts("256bit AVX vector: (not AVX2)");
 	run(lists, intersect_vector_avx, intersect_vector_avx_count);
+#ifndef DISABLE_ASM
 	puts("256bit AVX vector: (not AVX2) - asm");
 	//FIXME: normal intersection segfaults
 	//run(lists, intersect_vector_avx_asm, intersect_vector_avx_asm_count);
 	run(lists, nullptr, intersect_vector_avx_asm_count); 
 #endif
+#endif
 
 #ifdef __AVX2__
 	puts("256bit AVX2 vector");
 	run(lists, intersect_vector_avx2, intersect_vector_avx2_count);
+#ifndef DISABLE_ASM
 	puts("256bit AVX2 vector - asm");
 	run(lists, intersect_vector_avx2_asm, intersect_vector_avx2_asm_count);
+#endif
 #endif
 
 
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 	puts("512bit AVX512 vector using vpconflictd");
 	run(lists, intersect_vector_avx512_conflict);
+#ifndef DISABLE_ASM
 	puts("512bit AVX512 vector using vpconflictd - asm");
 	run(lists, intersect_vector_avx512_conflict_asm);
+#endif
 	puts("512bit AVX512 vector using shuffling");
 	run(lists, intersect_vector_avx512);
+#ifndef DISABLE_ASM
 	puts("512bit AVX512 vector using shuffling - asm");
 	run(lists, intersect_vector_avx512_asm);
+#endif
 #endif
 
 #if 0

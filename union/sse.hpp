@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-#include "branchless.hpp"
+#include "naive.hpp"
 
 #define BLEND 1
 #if BLEND
@@ -109,6 +109,7 @@ size_t union_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *lis
 			// write minimum as above out to result
 			// keep maximum and do the same steps as above with next block
 			// next block from one list, which first element in new block is smaller
+#if 0
 			asm(".intel_syntax noprefix;"
 
 				"xor rax, rax;"
@@ -131,6 +132,13 @@ size_t union_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *lis
 				: "0"(i_a), "1"(i_b), "r"(a_nextfirst), "r"(b_nextfirst), "r"(list1), "r"(list2)
 				: "%eax","%ebx", "%r10","%r11", "cc"
 			);
+#else
+			i_a += (a_nextfirst <= b_nextfirst) * 4;
+			i_b += (a_nextfirst >  b_nextfirst) * 4;
+			size_t index = (a_nextfirst <= b_nextfirst)? i_a: i_b;
+			const uint32_t *base = (a_nextfirst <= b_nextfirst)? list1: list2;
+			v_b = _mm_load_si128((__m128i*)&base[index]);
+#endif
 		}while(i_a < st_a && i_b < st_b);
 		// v_a contains max vector from last comparison, v_b contains new, might be out of bounds
 		// indices i_a and i_b correct, still need to handle v_a
@@ -145,7 +153,6 @@ size_t union_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *lis
 			// endofblock needs to be considered too, for deduplication
 			if(endofblock == std::min(maxtail[0],list1[i_a])) --count;
 			// compare maxtail with list1
-	// 		count += union_scalar_branchless(maxtail, 4, list1+i_a, size1-i_a, result+count);
 			while(mti < mtsize && i_a < size1){
 				if(maxtail[mti] < list1[i_a]){
 					result[count++] = maxtail[mti];
@@ -163,7 +170,6 @@ size_t union_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *lis
 			// endofblock needs to be considered too, for deduplication
 			if(endofblock == std::min(maxtail[0],list2[i_b])) --count;
 			// compare maxtail with list2
-	// 		count += union_scalar_branchless(maxtail, 4, list2+i_b, size2-i_b, result+count);
 			while(mti < mtsize && i_b < size2){
 				if(maxtail[mti] < list2[i_b]){
 					result[count++] = maxtail[mti];
@@ -184,7 +190,7 @@ size_t union_vector_sse(const uint32_t *list1, size_t size1, const uint32_t *lis
 	}
 
 	// scalar tail
-	count += union_scalar_branchless(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
+	count += union_scalar(list1+i_a, size1-i_a, list2+i_b, size2-i_b, result+count);
 
 	return count;
 }

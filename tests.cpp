@@ -4,6 +4,7 @@
 #include <array>
 #include <vector>
 
+#include "projectconfig.h"
 #include "shuffle_dictionary.hpp"
 
 #include "intersection/naive.hpp"
@@ -117,7 +118,6 @@ void run(
 		for(const auto &f : f_intersection){
 			size_t size_res = f.second(t.list1, t.size1, t.list2, t.size2, res);
 			if(!equivalent(res, size_res, t.res_intersection, t.size_intersection)){
-				//TODO
 				printf("test \"%s\", intersection \"%s\" wrong\nlist1 : ", t.name, f.first);
 				for(size_t i=0; i<t.size1; ++i) printf("%i, ", t.list1[i]);
 				printf("\nlist2 : ");
@@ -132,7 +132,6 @@ void run(
 		for(const auto &f : f_union){
 			size_t size_res = f.second(t.list1, t.size1, t.list2, t.size2, res);
 			if(!equivalent(res, size_res, t.res_union, t.size_union)){
-				//TODO
 				printf("test \"%s\", union \"%s\" wrong\nlist1 : ", t.name, f.first);
 				for(size_t i=0; i<t.size1; ++i) printf("%i, ", t.list1[i]);
 				printf("\nlist2 : ");
@@ -147,7 +146,6 @@ void run(
 		for(const auto &f : f_difference){
 			size_t size_res = f.second(t.list1, t.size1, t.list2, t.size2, res);
 			if(!equivalent(res, size_res, t.res_difference, t.size_difference)){
-				//TODO
 				printf("test \"%s\", difference \"%s\" wrong\nlist1 : ", t.name, f.first);
 				for(size_t i=0; i<t.size1; ++i) printf("%i, ", t.list1[i]);
 				printf("\nlist2 : ");
@@ -162,7 +160,6 @@ void run(
 		for(const auto &f : f_merge){
 			size_t size_res = f.second(t.list1, t.size1, t.list2, t.size2, res);
 			if(!equivalent(res, size_res, t.res_merge, t.size_merge)){
-				//TODO
 				printf("test \"%s\", merge \"%s\" wrong\nlist1 : ", t.name, f.first);
 				for(size_t i=0; i<t.size1; ++i) printf("%i, ", t.list1[i]);
 				printf("\nlist2 : ");
@@ -257,29 +254,41 @@ int main(){
 			FN(intersect_scalar),
 			FN(intersect_scalar_stl),
 			FN(intersect_scalar_branchless_c),
+#ifndef DISABLE_ASM
 			FN(intersect_scalar_branchless),
+#endif
 #ifdef __SSE4_1__
 			FN(intersect_vector_sse),
+#  ifndef DISABLE_ASM
 			FN(intersect_vector_sse_asm),
+#  endif
 #endif
 #ifdef __AVX__
 			FN(intersect_vector_avx),
 #endif
 #ifdef __AVX2__
 			FN(intersect_vector_avx2),
+#  ifndef DISABLE_ASM
 			FN(intersect_vector_avx2_asm),
+#  endif
 #endif
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 			FN(intersect_vector_avx512_conflict),
+#  ifndef DISABLE_ASM
 			FN(intersect_vector_avx512_conflict_asm),
+#  endif
 			FN(intersect_vector_avx512),
+#  ifndef DISABLE_ASM
 			FN(intersect_vector_avx512_asm),
+#  endif
 #endif
 		},
 		{
 			FN(union_scalar),
 			FN(union_scalar_stl),
+#ifndef DISABLE_ASM
 			FN(union_scalar_branchless),
+#endif
 #ifdef __SSE4_1__
 			FN(union_vector_sse),
 #endif
@@ -299,7 +308,9 @@ int main(){
 #endif
 #if defined(__AVX512F__) && defined(__AVX512CD__) && defined(__AVX512DQ__)
 			FN(difference_vector_avx512_conflict),
+#  ifndef DISABLE_ASM
 			FN(difference_vector_avx512_conflict_asm)
+#  endif
 #endif
 		},
 		{

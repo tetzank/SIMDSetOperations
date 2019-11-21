@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <chrono>
 
+#include "projectconfig.h"
 #include "constants.h"
 
 #include "merge/naive.hpp"

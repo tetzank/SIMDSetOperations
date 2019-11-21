@@ -1,7 +1,8 @@
 #ifndef PROJECTCONFIG_H_
 #define PROJECTCONFIG_H_
 
-#cmakedefine OPENMP_FOUND
 
+#cmakedefine OPENMP_FOUND
+#cmakedefine DISABLE_ASM
 
 #endif

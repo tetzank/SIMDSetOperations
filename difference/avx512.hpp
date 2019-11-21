@@ -76,6 +76,7 @@ size_t difference_vector_avx512_conflict(const uint32_t *list1, size_t size1, co
 	return count;
 }
 
+#ifndef DISABLE_ASM
 size_t difference_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	size_t count=0, i_a=0, i_b=0;
 	size_t st_a = (size1 / 8) * 8;
@@ -178,5 +179,6 @@ size_t difference_vector_avx512_conflict_asm(const uint32_t *list1, size_t size1
 	);
 	return count;
 }
+#endif
 
 #endif

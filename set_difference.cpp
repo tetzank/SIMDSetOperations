@@ -89,8 +89,10 @@ int main(void){
 	//FIXME: broken
 	puts("512bit AVX512 vector");
 	run(lists, difference_vector_avx512_conflict);
+#ifndef DISABLE_ASM
 	puts("512bit AVX512 vector - asm");
 	run(lists, difference_vector_avx512_conflict_asm);
+#endif
 #endif
 
 	for(size_t i=0; i<listCount; ++i){

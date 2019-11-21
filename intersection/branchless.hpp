@@ -27,6 +27,7 @@ size_t intersect_scalar_branchless_c_count(const uint32_t *list1, size_t size1, 
 }
 
 
+#ifndef DISABLE_ASM
 size_t intersect_scalar_branchless(const uint32_t *list1, size_t size1, const uint32_t *list2, size_t size2, uint32_t *result){
 	const uint32_t *end1 = list1+size1, *end2 = list2+size2, *endresult=result;
 	asm(".intel_syntax noprefix;"
@@ -108,5 +109,6 @@ size_t intersect_scalar_branchless_count(const uint32_t *list1, size_t size1, co
 	);
 	return count;
 }
+#endif
 
 #endif

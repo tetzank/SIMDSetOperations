@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <chrono>
 
+#include "projectconfig.h"
 #include "constants.h"
 #include "shuffle_dictionary.hpp"
 
@@ -60,8 +61,10 @@ int main(){
 	//run(lists, union_scalar_stl_parallel);
 #endif
 
+#ifndef DISABLE_ASM
 	puts("asm branchless scalar union:");
 	run(lists, union_scalar_branchless);
+#endif
 
 #ifdef __SSE4_1__
 	puts("SSE union:");
