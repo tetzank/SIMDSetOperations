@@ -121,9 +121,9 @@ size_t intersect_vector_sse_asm(const uint32_t *list1, size_t size1, const uint3
 
 	while(i_a < st_a && i_b < st_b) {
 		asm(".intel_syntax noprefix;"
-			//FIXME: uses 128-bit instructions of AVX not SSE
-			"vmovdqa xmm0, [%q3 + %q[i_a]*4];" //__m128i v_a = _mm_load_si128((__m128i*)&list1[i_a]);
-			"vmovdqa xmm1, [%q4 + %q[i_b]*4];" //__m128i v_b = _mm_load_si128((__m128i*)&list2[i_b]);
+
+			"movdqa xmm0, [%q3 + %q[i_a]*4];" //__m128i v_a = _mm_load_si128((__m128i*)&list1[i_a]);
+			"movdqa xmm1, [%q4 + %q[i_b]*4];" //__m128i v_b = _mm_load_si128((__m128i*)&list2[i_b]);
 
 			"mov r8d, [%q[list1] + %q[i_a]*4 + 12];" //int32_t a_max = list1[i_a+3];
 			"mov r9d, [%q[list2] + %q[i_b]*4 + 12];" //int32_t b_max = list2[i_b+3];
@@ -131,33 +131,35 @@ size_t intersect_vector_sse_asm(const uint32_t *list1, size_t size1, const uint3
 			//i_b += (a_max >= b_max) * 4;
 			"xor rax, rax;"
 			"xor rbx, rbx;"
-			"cmp r8d, r9d;"
-			"setbe al;"
-			"setae bl;"
+			"cmp r8d, r9d;" // shared comparison of a_max and b_max
+			"setbe al;"     // a_max <= b_max
+			"setae bl;"     // a_max >= b_max
 			"lea %q[i_a], [%q[i_a] + rax*4];"
 			"lea %q[i_b], [%q[i_b] + rbx*4];"
 
-			"vpshufd xmm2, xmm1, 0x39;"
-			"vpshufd xmm3, xmm1, 0x4e;"
-			"vpshufd xmm4, xmm1, 0x93;"
-			"vpcmpeqd xmm1, xmm0, xmm1;"
-			"vpcmpeqd xmm2, xmm0, xmm2;"
-			"vpcmpeqd xmm3, xmm0, xmm3;"
-			"vpcmpeqd xmm4, xmm0, xmm4;"
+			"pshufd xmm2, xmm1, 0x39;" // rotating right
+			"pshufd xmm3, xmm1, 0x4e;" // rotating left
+			"pshufd xmm4, xmm1, 0x93;" // between
+			// do all comparisons
+			"pcmpeqd xmm1, xmm0;"
+			"pcmpeqd xmm2, xmm0;"
+			"pcmpeqd xmm3, xmm0;"
+			"pcmpeqd xmm4, xmm0;"
+			// OR-ing of comparison masks
+			"por xmm2, xmm1;"
+			"por xmm4, xmm3;"
+			"por xmm2, xmm4;"
 
-			"vpor xmm2, xmm1, xmm2;"
-			"vpor xmm4, xmm3, xmm4;"
-			"vpor xmm2, xmm2, xmm4;"
-
-			"vmovmskps r8d, xmm2;"
+			"movmskps r8d, xmm2;" // movemask
 			// save in result
 			// 16 multiplier not possible in index expression
 			// -> do it outside
 			"movslq r9, r8d;"
 			"shl r9, 4;"
-			"vpshufb xmm0, xmm0, [%q[shuffle_mask] + r9];"
-			"vmovups [%q[result] + %q[count]*4], xmm0;"
+			"pshufb xmm0, [%q[shuffle_mask] + r9];"    // compress
+			"movups [%q[result] + %q[count]*4], xmm0;" // store
 
+			// count += popcount(mask)
 			"popcnt r8d, r8d;"
 			"add %q[count], r8;"
 
