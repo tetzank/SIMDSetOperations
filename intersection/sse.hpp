@@ -121,7 +121,7 @@ size_t intersect_vector_sse_asm(const uint32_t *list1, size_t size1, const uint3
 
 	while(i_a < st_a && i_b < st_b) {
 		asm(".intel_syntax noprefix;"
-
+			//FIXME: uses 128-bit instructions of AVX not SSE
 			"vmovdqa xmm0, [%q3 + %q[i_a]*4];" //__m128i v_a = _mm_load_si128((__m128i*)&list1[i_a]);
 			"vmovdqa xmm1, [%q4 + %q[i_b]*4];" //__m128i v_b = _mm_load_si128((__m128i*)&list2[i_b]);
 
@@ -137,23 +137,16 @@ size_t intersect_vector_sse_asm(const uint32_t *list1, size_t size1, const uint3
 			"lea %q[i_a], [%q[i_a] + rax*4];"
 			"lea %q[i_b], [%q[i_b] + rbx*4];"
 
-// 			"vpcmpeqd xmm2, xmm0, xmm1;"
-// 			"vpshufd xmm1, xmm1, 0x39;"
-// 			"vpcmpeqd xmm3, xmm0, xmm1;"
-// 			"vpshufd xmm1, xmm1, 0x39;"
-// 			"vpcmpeqd xmm4, xmm0, xmm1;"
-// 			"vpshufd xmm1, xmm1, 0x39;"
-// 			"vpcmpeqd xmm5, xmm0, xmm1;"
-			"vpshufd xmm6, xmm1, 0x39;"
-			"vpshufd xmm7, xmm1, 0x4e;"
-			"vpshufd xmm8, xmm1, 0x93;"
-			"vpcmpeqd xmm2, xmm0, xmm1;"
-			"vpcmpeqd xmm3, xmm0, xmm6;"
-			"vpcmpeqd xmm4, xmm0, xmm7;"
-			"vpcmpeqd xmm5, xmm0, xmm8;"
+			"vpshufd xmm2, xmm1, 0x39;"
+			"vpshufd xmm3, xmm1, 0x4e;"
+			"vpshufd xmm4, xmm1, 0x93;"
+			"vpcmpeqd xmm1, xmm0, xmm1;"
+			"vpcmpeqd xmm2, xmm0, xmm2;"
+			"vpcmpeqd xmm3, xmm0, xmm3;"
+			"vpcmpeqd xmm4, xmm0, xmm4;"
 
-			"vpor xmm2, xmm2, xmm3;"
-			"vpor xmm4, xmm4, xmm5;"
+			"vpor xmm2, xmm1, xmm2;"
+			"vpor xmm4, xmm3, xmm4;"
 			"vpor xmm2, xmm2, xmm4;"
 
 			"vmovmskps r8d, xmm2;"
@@ -166,7 +159,6 @@ size_t intersect_vector_sse_asm(const uint32_t *list1, size_t size1, const uint3
 			"vmovups [%q[result] + %q[count]*4], xmm0;"
 
 			"popcnt r8d, r8d;"
-// 			"movl r8, r8d;" // zero extend
 			"add %q[count], r8;"
 
 			".att_syntax;"
@@ -174,8 +166,7 @@ size_t intersect_vector_sse_asm(const uint32_t *list1, size_t size1, const uint3
 			: [list1]"r"(list1), [list2]"r"(list2), [result]"r"(result), [shuffle_mask]"r"(shuffle_mask),
 				"0"(i_a), "1"(i_b), "2"(count)
 			: "%rax", "%rbx", "%r8", "%r9",
-				"%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5",
-				"%xmm6", "%xmm7", "xmm8",
+				"%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4",
 				"memory", "cc"
 		);
 	}
